@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from dotenv import load_dotenv
 from flask import Flask
 import os
@@ -30,6 +31,10 @@ def start():
     app.register_blueprint(site_main, url_prefix="/")
 
     from .models import User
+
+    login_manager = LoginManager()
+    login_manager.login_view = "site_auth.login"
+    login_manager.init_app(app)
 
     create_database(app)
 
