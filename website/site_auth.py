@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+from flask_login import login_required
 
 site_auth = Blueprint("site_auth", __name__)
 
@@ -24,3 +25,9 @@ def login():
     # server validates username/email, password
     # maybe 2FA
     return(render_template("login.html"))
+
+@site_auth.route("/My-Account")
+@login_required
+def myaccount():
+    # may not be necessary
+    return 404

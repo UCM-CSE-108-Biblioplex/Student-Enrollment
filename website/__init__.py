@@ -38,6 +38,10 @@ def start():
 
     create_database(app)
 
+    @login_manager.user_loader
+    def load_user(id):
+        return(User.query.get(id))
+
     return(app)
 
 def create_database(app):

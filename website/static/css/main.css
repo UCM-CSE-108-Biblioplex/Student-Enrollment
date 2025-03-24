@@ -42,25 +42,6 @@
   --mocha-surface0-rgb: 49, 50, 68;
   --mocha-lavender-rgb: 180, 190, 254;
   
-  /* Default to light theme */
-  --bg-primary: var(--latte-base);
-  --bg-secondary: var(--latte-mantle);
-  --bg-tertiary: var(--latte-crust);
-  --text-primary: var(--latte-text);
-  --text-secondary: var(--latte-subtext1);
-  --surface-0: var(--latte-surface0);
-  --surface-1: var(--latte-surface1);
-  --surface-2: var(--latte-surface2);
-  --overlay: var(--latte-overlay0);
-  --accent: var(--latte-lavender);
-  --accent-hover: var(--latte-mauve);
-  --shadow: rgba(0, 0, 0, 0.1);
-
-  --bg-primary-rgb: var(--latte-base-rgb);
-  --bg-secondary-rgb: var(--latte-mantle-rgb);
-  --surface-0-rgb: var(--latte-surface0-rgb);
-  --accent-rgb: var(--latte-lavender-rgb);
-  
   /* Typography */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
     "Helvetica Neue", Arial, sans-serif;
@@ -92,6 +73,15 @@
   --radius-xl: 0.75rem;
   --radius-full: 9999px;
 }
+/* 
+Keeping this prevents light mode from flashing
+briefly before the JavaScript can change the 
+theme (even if the browser preference is dark).
+Dark mode will flash briefly for light
+mode users if their browser preference is set
+to dark and they have light mode selected, but
+that's their fault for misconfiguring.
+*/
 @media (prefers-color-scheme: dark) {
   :root {
     --bg-primary: var(--mocha-base);
@@ -119,6 +109,67 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* === Theme Switching === */
+html.light-theme {
+  --bg-primary: var(--latte-base);
+  --bg-secondary: var(--latte-mantle);
+  --bg-tertiary: var(--latte-crust);
+  --text-primary: var(--latte-text);
+  --text-secondary: var(--latte-subtext1);
+  --surface-0: var(--latte-surface0);
+  --surface-1: var(--latte-surface1);
+  --surface-2: var(--latte-surface2);
+  --overlay: var(--latte-overlay0);
+  --accent: var(--latte-lavender);
+  --accent-hover: var(--latte-mauve);
+  --shadow: rgba(0, 0, 0, 0.1);
+
+  --bg-primary-rgb: var(--latte-base-rgb);
+  --bg-secondary-rgb: var(--latte-mantle-rgb);
+  --surface-0-rgb: var(--latte-surface0-rgb);
+  --accent-rgb: var(--latte-lavender-rgb);
+}
+
+html.dark-theme {
+  --bg-primary: var(--mocha-base);
+  --bg-secondary: var(--mocha-mantle);
+  --bg-tertiary: var(--mocha-crust);
+  --text-primary: var(--mocha-text);
+  --text-secondary: var(--mocha-subtext1);
+  --surface-0: var(--mocha-surface0);
+  --surface-1: var(--mocha-surface1);
+  --surface-2: var(--mocha-surface2);
+  --overlay: var(--mocha-overlay0);
+  --accent: var(--mocha-lavender);
+  --accent-hover: var(--mocha-mauve);
+  --shadow: rgba(0, 0, 0, 0.3);
+
+  --bg-primary-rgb: var(--mocha-base-rgb);
+  --bg-secondary-rgb: var(--mocha-mantle-rgb);
+  --surface-0-rgb: var(--mocha-surface0-rgb);
+  --accent-rgb: var(--mocha-lavender-rgb);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-icon {
+  margin-left: 4px;
+}
+
+/* Override the media query when explicit theme is set */
+html.light-theme, html.dark-theme {
+  color-scheme: initial;
+}
+
+/* Animation for theme transition */
+body, a, button, input, .card, .topnav-link, .btn, .site-footer {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* === Base Styling === */

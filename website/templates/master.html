@@ -19,21 +19,39 @@
 
 <body x-data="master">
 <nav class="top-navbar">
-	<a class="topnav-link" href="#"><span>Home</span></a>
-	<a class="topnav-link" href="#"><span>Catalog</span></a>
+	<a class="topnav-link" href="{{ url_for('site_main.home') }}"><span>Home</span></a>
+	{% if current_user.is_authenticated %}
 	<div class="topnav-dropdown">
 		<button class="topnav-dropbtn">Enrollment<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
 		<div class="dropdown-content">
-			<a class="topnav-link" href="#"><span>Enroll in Class</span></a>
-			<a class="topnav-link" href="#"><span>Link2</span></a>
-			<a class="topnav-link" href="#"><span>Link3</span></a>
+			<a class="topnav-link"  href="{{ url_for('site_enrollment.enroll_term', term='S25') }}"><span>Enroll in Class</span></a>
+			<a class="topnav-link" href="{{ url_for('site_enrollment.catalog_term', term='S25') }}"><span>Course Catalog</span></a>
+			<a class="topnav-link" href="{{ url_for('site_enrollment.classes_term', term='S25') }}"><span>Course Schedule</span></a>
 		</div>
 	</div>
-	<a class="topnav-link" href="#" style="margin-left: auto"><span>Dark/Light</span></a>
-	{% if False %}
-		<a class="topnav-link" href="#"><span>My Account</span></a>
 	{% else %}
-		<a class="topnav-link" href="#"><span>Sign Up</span></a>
+	<a class="topnav-link" href="{{ url_for('site_enrollment.catalog_term', term='S25') }}"><span>Catalog</span></a>
+	{% endif %}
+	<a class="topnav-link theme-toggle" href="#" @click.prevent="toggleTheme" style="margin-left: auto">
+		<svg x-show="!isDarkTheme" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+			<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path>
+		</svg>
+		<svg x-show="isDarkTheme" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+			<circle cx="12" cy="12" r="5"></circle>
+			<path d="M12 1v2"></path>
+			<path d="M12 21v2"></path>
+			<path d="M4.22 4.22l1.42 1.42"></path>
+			<path d="M18.36 18.36l1.42 1.42"></path>
+			<path d="M1 12h2"></path>
+			<path d="M21 12h2"></path>
+			<path d="M4.22 19.78l1.42-1.42"></path>
+			<path d="M18.36 5.64l1.42-1.42"></path>
+		</svg>
+	</a>	
+	{% if False %}
+		<a class="topnav-link" href="{{ url_for('site_auth.my_account') }}"><span>My Account</span></a>
+	{% else %}
+		<a class="topnav-link" href="{{ url_for('site_auth.signup') }}"><span>Sign Up</span></a>
 	{% endif %}
 </nav>
 

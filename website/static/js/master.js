@@ -1,69 +1,29 @@
 document.addEventListener("alpine:init", () => {
     Alpine.data("master", () => ({
-        mobileMenuOpen: false,
-        theme: 'auto',
-        
-        init() {
-        // Detect preferred color scheme
-        this.detectColorScheme();
-        
-        // Add padding to body to prevent content from being hidden under fixed navbar
-        // document.body.style.paddingTop = '70px';
-        
-        // Listen for OS theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (this.theme === 'auto') {
-            this.applyTheme(e.matches ? 'dark' : 'light');
-            }
-        });
-        },
-        
-        detectColorScheme() {
-        // Check for saved user preference
-        const savedTheme = localStorage.getItem('theme');
-        
-        if (savedTheme) {
-            this.theme = savedTheme;
-            this.applyTheme(savedTheme);
-        } else {
-            // Use OS preference
-            this.theme = 'auto';
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            this.applyTheme(prefersDark ? 'dark' : 'light');
-        }
-        },
+        isDarkTheme: localStorage.getItem('theme') === 'dark' || 
+                    (localStorage.getItem('theme') === null && 
+                     window.matchMedia('(prefers-color-scheme: dark)').matches),
         
         toggleTheme() {
-        if (this.theme === 'light' || (this.theme === 'auto' && !window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            this.theme = 'dark';
-        } else {
-            this.theme = 'light';
-        }
-        
-        localStorage.setItem('theme', this.theme);
-        this.applyTheme(this.theme);
+            this.isDarkTheme = !this.isDarkTheme;
+            if (this.isDarkTheme) {
+                document.documentElement.classList.add('dark-theme');
+                document.documentElement.classList.remove('light-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.add('light-theme');
+                document.documentElement.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
         },
-        
-        applyTheme(theme) {
-        if (theme === 'auto') {
-            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark-theme');
-        } else {
-            document.documentElement.classList.remove('dark-theme');
-        }
-        },
-        
-        toggleMobileMenu() {
-        this.mobileMenuOpen = !this.mobileMenuOpen;
-        
-        if (this.mobileMenuOpen) {
-            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
-        } else {
-            document.body.style.overflow = ''; // Restore scrolling
-        }
+
+        init() {
+            // Set initial theme based on preference
+            if (this.isDarkTheme) {
+                document.documentElement.classList.add('dark-theme');
+            } else {
+                document.documentElement.classList.add('light-theme');
+            }
         }
     }));
-});  
+});

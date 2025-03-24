@@ -5,7 +5,7 @@ site_enrollment = Blueprint("site_enrollment", __name__)
 
 @site_enrollment.route("/Test")
 def test():
-    return 404
+    return("Endpoint Incomplete", 404)
 
 @site_enrollment.route("/")
 def enrollment():
@@ -15,17 +15,17 @@ def enrollment():
     #       - includes # of enrolled students
     #       - includes available seats, waitlist slots
     #   - go to enrollment tool
-    return 404
+    return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/classes")
+@site_enrollment.route("/Classes")
 @login_required
 def classes():
     # just a page with links to different
     # site_enrollment.classes_term endpoints
     # maybe use a dropdown; maybe use a carousel; idk
-    return 404
+    return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/classes/<string:term>")
+@site_enrollment.route("/Classes/<string:term>")
 @login_required
 def classes_term(term):
     # returns a calendar displaying term schedule
@@ -34,16 +34,16 @@ def classes_term(term):
     #       Calendare, etc. would be nice
     # also returns a list of enrolled classes
     # has link to enroll in courses for this term
-    return 404
+    return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/catalog")
-def catalog(term):
+@site_enrollment.route("/Catalog")
+def catalog():
     # just a page with links to different
     # site_enrollment.catalog_term endpoints
     # maybe use a dropdown; maybe use a carousel; idk
-    return 404
+    return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/catalog/<string:term>")
+@site_enrollment.route("/Catalog/<string:term>")
 def catalog_term(term):
     # returns a list of courses offered
     #   - includes course name, ID, CRN, etc.
@@ -51,17 +51,17 @@ def catalog_term(term):
     #   - includes Dates/Times of classes, exams
     #       - hovercard w/ calendar element would be neat
     #   - includes level of enrollment, waitlist availability
-    return 404
+    return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/enroll")
+@site_enrollment.route("/Enroll")
 @login_required
 def enroll():
     # just a page with links to different
     # site_enrollment.enroll_term endpoints
     # maybe use a carousel; maybe use a dropdown; idk
-    return 404
+    return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/enroll/<string:term>")
+@site_enrollment.route("/Enroll/<string:term>")
 @login_required
 def enroll_term(term):
     # likely includes reuised components from
@@ -69,4 +69,4 @@ def enroll_term(term):
     # has a course catalog and calendar of selected term
     # checks enrollment availability before allowing db changes
     # maybe include prerequisites/restrictions
-    return 404
+    return("Endpoint Incomplete", 404)
