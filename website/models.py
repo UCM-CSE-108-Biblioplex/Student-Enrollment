@@ -1,6 +1,7 @@
 from flask_login import UserMixin
 from . import db
-import time # useful later for potential API Keys
+import time  # useful later for potential API Keys
+
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"
@@ -10,7 +11,10 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255))
     password = db.Column(db.String(255), nullable=False, info={"min_length": 4})
     api_keys = db.relationship("APIKey", backref="user")
-    courses = db.relationship("Course", secondary="roles", back_populates="users")
+    courses = db.relationship(
+        "Course", secondary="roles", back_populates="users"
+    )
+
 
 class Course(db.Model):
     __tablename__ = "courses"
@@ -22,17 +26,21 @@ class Course(db.Model):
         "User", secondary="roles", back_populates="courses"
     )
 
+
 class Role(db.Model):
-    __tablename__ = "roles"
+    __tablename__ = "roles_def"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63), nullable=False)
 
+
 roles = db.Table(
-    "roles_table",
+    "roles",
+    db.metadata,
     db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
     db.Column("course_id", db.Integer, db.ForeignKey("courses.id"), primary_key=True),
-    db.Column("role_id", db.Integer, db.ForeignKey("roles.id"))
+    db.Column("role_id", db.Integer, db.ForeignKey("roles_def.id"))
 )
+
 
 class APIKey(db.Model):
     __tablename__ = "keys"

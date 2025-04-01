@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash as gph
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from dotenv import load_dotenv
@@ -32,13 +33,19 @@ def start():
     app.register_blueprint(site_main, url_prefix="/")
     app.register_blueprint(site_admin, url_prefix="/admin")
 
-    from .models import User
+    from .models import User, Role
 
     login_manager = LoginManager()
     login_manager.login_view = "site_auth.login"
     login_manager.init_app(app)
 
     create_database(app)
+
+    with app.app_context():
+        app.config["student_role"] = Role.query.filter_by(name="Student").first()
+        app.config["instructor_role"] = Role.query.filter_by(name="Instructor").first()
+        app.config["ta_role"] = Role.query.filter_by(name="TA").first()
+        app.config["admin_role"] = Role.query.filter_by(name="Admin").first()
 
     @login_manager.user_loader
     def load_user(id):
@@ -62,8 +69,6 @@ def create_database(app):
         db.session.add(instructor_role)
         ta_role = Role(name="TA")
         db.session.add(ta_role)
-        admin_role = Role(name="Admin")
-        db.session.add(admin_role)
 
         # user-defined roles
         # in case of unforeseen use cases (e.g., Learning Assistent, etc.)
@@ -76,10 +81,9 @@ def create_database(app):
 
         admin_iser = User(
             username=os.environ.get("DEFAULT_ADMIN_USERNAME", "admin"),
-            password=generate_password_hash(
+            password=gph(
                 os.environ.get("DEFAULT_ADMIN_PASSWORD", "password"),
-                method="pbkdf2",
-                role=admin_role
+                method="pbkdf2"
             ),
 
         )

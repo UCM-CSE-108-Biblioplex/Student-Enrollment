@@ -1,0 +1,17 @@
+{% extends "master.html" %}
+
+{% block body %}
+<div class="container mt-8">
+    <form class="flex flex-col gap-8" method="post">
+        <h1 class="mb-4">Sign Up</h1>
+        <input id="first_name" name="first_name" placeholder="First Name" type="text">
+        <input id="middle_name" name="middle_name" placeholder="Middle Name (Optional)" type="text">
+        <input id="last_name" name="last_name" placeholder="Last Name" type="text">
+        <input id="username" name="username" placeholder="Username" type="text">
+        <input id="email" name="email" placeholder="Email" type="text">
+        <input id="password1" name="password1" placeholder="Password" type="text">
+        <input id="password2" name="password2" placeholder="Confirm Password" type="text">
+        <a><button class="btn btn-primary">Sign Up</button></a>
+    </form>
+</div>
+{% endblock %}
