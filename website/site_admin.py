@@ -1,4 +1,6 @@
-from flask import Blueprint, render_remplate
+from flask import Blueprint, render_template
+from flask_login import current_user
+from functools import wraps
 
 site_admin = Blueprint("site_admin", __name__)
 

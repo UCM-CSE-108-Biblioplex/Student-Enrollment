@@ -25,10 +25,10 @@ class Course(db.Model):
 class Role(db.Model):
     __tablename__ = "roles"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63, nullable=False))
+    name = db.Column(db.String(63), nullable=False)
 
 roles = db.Table(
-    "roles",
+    "roles_table",
     db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
     db.Column("course_id", db.Integer, db.ForeignKey("courses.id"), primary_key=True),
     db.Column("role_id", db.Integer, db.ForeignKey("roles.id"))
