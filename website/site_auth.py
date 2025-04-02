@@ -8,49 +8,78 @@ import re
 
 site_auth = Blueprint("site_auth", __name__)
 
+def validate_signup(request):
+    errors = []
+
+    first_name = request.form.get("first_name")
+    if(not first_name):
+        errors.append("First Name is required.")
+    if(len(first_name) > 255):
+        errors.append("First name must be fewer than 256 characters.")
+
+    middle_name = request.form.get("middle_name", "")
+    if(len(middle_name) > 255):
+        errors.append("Middle name must be fewer than 256 characters.")
+
+    last_name = request.form.get("last_name")
+    if(not last_name):
+        errors.append("Last Name is required.")
+    if(len(last_name) > 255):
+        errors.append("Last name must be fewer than 256 characters.")
+
+    username = request.form.get("username", "")
+    if(username and len(username) > 255):
+        errors.append("Username must be fewer than 256 characters.")
+
+    email = request.form.get("email")
+    if(not email):
+        errors.append("Email is required.")
+    if(len(email) > 255):
+        errors.append("Email must be fewer than 256 characters.")
+
+    password1 = request.form.get("password1")
+    if(not password1):
+        errors.append("Password is required.")
+    if(len(password1) < 6 or len(password1) > 255):
+        errors.append("Password must be at lest 6 characters and fewer than 256 characters long.")
+
+    password2 = request.form.get("password2")
+    if(not password2):
+        errors.append("Password Confirmation is required.")
+    if(password1 != password2):
+        errors.append("Passwords do not match")
+    
+    return(errors)
+
+def generate_username(first_name, middle_name, last_name):
+    # generate username
+    # Just the user's last name, alphanumeric
+    processed_last_name = username = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())
+
+    # if that's taken, add middle initial (if provided) and last initial
+    results = User.query.filter_by(username=username)
+    if(len(results.all()) > 0):
+        last_initial = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())[:1]
+        if(middle_name): # if middle name is provided
+            middle_initial = re.sub(r"r[^a-zA-Z0-9]", "", middle_name.casefold().capitalize())[:1]
+            processed_last_name = processed_last_name[:-2]
+        else: # otherwise just last initial
+            middle_initial = ""
+            processed_last_name = processed_last_name[:-1]
+        username = processed_last_name + middle_initial + last_initial
+    
+    # if that's taken, add a number
+    results = User.query.filter_by(username=username)
+    if(len(results.all()) > 0):
+        number = str(len(results.all()))
+        slice_index = -1 * len(number)
+        processed_last_name = processed_last_name[:slice_index]
+        username = processed_last_name + middle_initial + last_initial + number
+
 @site_auth.route("/Signup", methods=["GET", "POST"])
 def signup():
     if(request.method == "POST"):
-        # get form data
-        errors = []
-
-        first_name = request.form.get("first_name")
-        if(not first_name):
-            errors.append("First Name is required.")
-        if(len(first_name) > 255):
-            errors.append("First name must be fewer than 256 characters.")
-
-        middle_name = request.form.get("middle_name", "")
-        if(len(middle_name) > 255):
-            errors.append("Middle name must be fewer than 256 characters.")
-
-        last_name = request.form.get("last_name")
-        if(not last_name):
-            errors.append("Last Name is required.")
-        if(len(last_name) > 255):
-            errors.append("Last name must be fewer than 256 characters.")
-
-        username = request.form.get("username", "")
-        if(username and len(username) > 255):
-            errors.append("Username must be fewer than 256 characters.")
-
-        email = request.form.get("email")
-        if(not email):
-            errors.append("Email is required.")
-        if(len(email) > 255):
-            errors.append("Email must be fewer than 256 characters.")
-
-        password1 = request.form.get("password1")
-        if(not password1):
-            errors.append("Password is required.")
-        if(len(password1) < 6 or len(password1) > 255):
-            errors.append("Password must be at lest 6 characters and fewer than 256 characters long.")
-
-        password2 = request.form.get("password2")
-        if(not password2):
-            errors.append("Password Confirmation is required.")
-        if(password1 != password2):
-            errors.append("Passwords do not match")
+        # validate form data
         
         # is it all there?
         if(errors):
@@ -67,29 +96,8 @@ def signup():
         else:
             if(username and len(username < 4)):
                 flash("Username must be at least 4 characters; generating valid username.", "warning")
-            # generate username
-            # Just the user's last name, alphanumeric
-            processed_last_name = username = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())
-
-            # if that's taken, add middle initial (if provided) and last initial
-            results = User.query.filter_by(username=username)
-            if(len(results.all()) > 0):
-                last_initial = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())[:1]
-                if(middle_name): # if middle name is provided
-                    middle_initial = re.sub(r"r[^a-zA-Z0-9]", "", middle_name.casefold().capitalize())[:1]
-                    processed_last_name = processed_last_name[:-2]
-                else: # otherwise just last initial
-                    middle_initial = ""
-                    processed_last_name = processed_last_name[:-1]
-                username = processed_last_name + middle_initial + last_initial
-            
-            # if that's taken, add a number
-            results = User.query.filter_by(username=username)
-            if(len(results.all()) > 0):
-                number = str(len(results.all()))
-                slice_index = -1 * len(number)
-                processed_last_name = processed_last_name[:slice_index]
-                username = processed_last_name + middle_initial + last_initial + number
+            username = generate_username(first_name, middle_name, last_name)
+            flash(f"Your username is {username}. Save it for later.", "success")
 
         # create new user
         try:
