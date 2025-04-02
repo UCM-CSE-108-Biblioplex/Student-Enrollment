@@ -79,14 +79,18 @@ def create_database(app):
                 new_role = Role(name=role)
                 db.session.add(new_roll)
 
-        admin_iser = User(
+        admin_user = User(
+            first_name=os.environ.get("DEFAULT_ADMIN_FIRST_NAME", "admin"),
+            last_name=os.environ.get("DEFAULT_ADMIN_LAST_NAME", "admin"),
             username=os.environ.get("DEFAULT_ADMIN_USERNAME", "admin"),
+            email=os.environ.get("DEFAULT_ADMIN_EMAIL", "admin@example.com"),
             password=gph(
                 os.environ.get("DEFAULT_ADMIN_PASSWORD", "password"),
                 method="pbkdf2"
             ),
 
         )
+        db.session.add(admin_user)
 
         db.session.commit()
 

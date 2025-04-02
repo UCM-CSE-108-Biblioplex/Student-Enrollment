@@ -48,7 +48,7 @@
 			<path d="M18.36 5.64l1.42-1.42"></path>
 		</svg>
 	</a>	
-	{% if False %}
+	{% if current_user.is_authenticated %}
 		<a class="topnav-link" href="{{ url_for('site_auth.my_account') }}"><span>My Account</span></a>
 	{% else %}
 		<a class="topnav-link" href="{{ url_for('site_auth.signup') }}"><span>Sign Up</span></a>
