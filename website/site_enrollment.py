@@ -36,14 +36,14 @@ def classes_term(term):
     # has link to enroll in courses for this term
     return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/Catalog")
+@site_enrollment.route("/course_catalog")
 def catalog():
     # just a page with links to different
     # site_enrollment.catalog_term endpoints
     # maybe use a dropdown; maybe use a carousel; idk
-    return("Endpoint Incomplete", 404)
+    return(render_template("course_catalog.html"))
 
-@site_enrollment.route("/Catalog/<string:term>")
+@site_enrollment.route("/course_catalog/<string:term>")
 def catalog_term(term):
     # returns a list of courses offered
     #   - includes course name, ID, CRN, etc.
@@ -51,7 +51,7 @@ def catalog_term(term):
     #   - includes Dates/Times of classes, exams
     #       - hovercard w/ calendar element would be neat
     #   - includes level of enrollment, waitlist availability
-    return("Endpoint Incomplete", 404)
+    return(render_template("Endpoint Incomplete", 404))
 
 @site_enrollment.route("/Enroll")
 @login_required

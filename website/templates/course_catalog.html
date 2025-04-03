@@ -1,0 +1,94 @@
+{% extends "master.html" %}
+
+{% block body %}
+<div class="container">
+    <h1 class="mb-4 mt-8">Select A Term</h1>
+    <div class="slider-container">
+        <div class="card card-slider">
+        <div class="card-header">Fall 2025</div>
+        <div class="card-body">
+            2025 Fall Semester at UC Merced
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary">See Courses</button>
+        </div>
+        </div>
+
+        <div class="card card-slider">
+            <div class="card-header">Summer 2025</div>
+            <div class="card-body">
+                2025 Summer Semester at UC Merced
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-primary">See Courses</button>
+            </div>
+            </div>
+        
+        <div class="card card-slider">
+        <div class="card-header">Spring 2025</div>
+        <div class="card-body">
+            2025 Spring Semester at UC Merced
+        </div>
+        <div class="card-footer">
+            <a href ="{{url_for('site_enrollment.catalog')}}">
+                <button class="btn btn-primary">See Courses</button>
+            </a>
+        </div>
+        </div>
+        
+        <div class="card card-slider">
+        <div class="card-header">Fall 2024</div>
+        <div class="card-body">
+            2024 Fall Semester at UC Merced
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary">See Courses</button>
+        </div>
+        </div>
+
+    </div>
+    <button class = "btn btn-primary" id = "next">></button>
+    <button class = "btn btn-primary" id = "prev"><</button>
+</div>
+<script>
+    let items = document.querySelectorAll('.slider-container .card-slider'); 
+    let next = document.getElementById('next'); 
+    let prev = document.getElementById('prev'); 
+
+    let active = 0; 
+    console.log(items.length);
+    function loadShow(){
+        let stt = 0; 
+        items[active].style.transform = `none`; 
+        items[active].style.zIndex = 1; 
+        items[active].style.filter = `none`; 
+        items[active].style.opacity = 1; 
+        for(var i = active + 1; i < items.length; i++){
+             stt++; 
+             items[i].style.transform = `translateX(${120*stt}px) scale(${1-0.2*stt}) perspective(1200px) rotateY(-1deg)`;
+             items[i].style.zIndex = -stt;
+             items[i].style.filter = 'blur(5px)';
+             items[i].style.opacity = stt > 2 ? 0 : 0.6; 
+        }
+        stt = 0; 
+        for(var i = active - 1; i >= 0; i--){
+             stt++; 
+             items[i].style.transform = `translateX(${-120*stt}px) scale(${1-0.2*stt}) perspective(1200px) rotateY(-1deg)`;
+             items[i].style.zIndex = -stt;
+             items[i].style.filter = 'blur(5px)';
+             items[i].style.opacity = stt > 2 ? 0 : 0.6; 
+        }
+    }
+    loadShow(); 
+
+    next.onclick = function(){
+        active = active + 1 < items.length ? active + 1 : active; 
+        loadShow();
+    }
+
+    prev.onclick = function(){
+        active = active - 1 >= 0 ? active - 1 : active; 
+        loadShow();
+    }
+</script>
+{% endblock %}

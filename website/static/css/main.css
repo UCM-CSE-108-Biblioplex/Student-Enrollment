@@ -528,6 +528,8 @@ a.topnav-link:hover, div.topnav-dropdown:hover button.topnav-dropbtn {
 .mt-4 { margin-top: var(--space-4); }
 .mt-8 { margin-top: var(--space-8); }
 
+
+
 .mb-1 { margin-bottom: var(--space-1); }
 .mb-2 { margin-bottom: var(--space-2); }
 .mb-4 { margin-bottom: var(--space-4); }
@@ -602,4 +604,38 @@ a.topnav-link:hover, div.topnav-dropdown:hover button.topnav-dropbtn {
   .footer-columns {
     grid-template-columns: 1fr;
   }
+}
+
+
+.slider-container {
+  position: relative;
+  overflow: visible; 
+  height: 300px;     
+  margin-top: var(--space-8);
+  margin-bottom: -2rem;
+}
+
+.card-slider {
+  position: absolute;
+  left: calc(48.5% - 110px);
+  top: 0;
+  transition: 0.5s;
+  text-align: justify;
+}
+
+#next, #prev{
+    position: absolute; 
+    margin-top: -245px;
+    color: white; 
+    background-color: transparent;
+    border: none; 
+    font-size: xx-large; 
+    font-family: inherit;
+    font-weight: bold; 
+    left:250px; 
+}
+
+#next{
+  left: unset; 
+  right: 210px; 
 }
