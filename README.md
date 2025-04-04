@@ -6,7 +6,7 @@ UC Merced CSE 108 Lab 8 Group Project
 
 ### Student Functionality
 
-- [ ] login/logout
+- [X] login/logout
 - [ ] view classes enrolled
 - [ ] view course catalog
 - [ ] see enrollment number in a given class
