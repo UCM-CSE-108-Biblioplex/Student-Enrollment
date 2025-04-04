@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from werkzeug.security import generate_password_hash as gph
 from werkzeug.security import check_password_hash as cph
-from flask_login import login_required, login_user
+from flask_login import login_required, login_user, current_user, logout_user
 from .models import User, Role
 from . import db
 import re
@@ -54,6 +54,7 @@ def validate_signup(request):
 def generate_username(first_name, middle_name, last_name):
     # generate username
     # Just the user's last name, alphanumeric
+    
     processed_last_name = username = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())
 
     # if that's taken, add middle initial (if provided) and last initial
@@ -75,12 +76,22 @@ def generate_username(first_name, middle_name, last_name):
         slice_index = -1 * len(number)
         processed_last_name = processed_last_name[:slice_index]
         username = processed_last_name + middle_initial + last_initial + number
+    
+    return(username)
 
 @site_auth.route("/Signup", methods=["GET", "POST"])
 def signup():
     if(request.method == "POST"):
         # validate form data
-        
+        errors = validate_signup(request)
+
+        first_name = request.form.get("first_name")
+        middle_name = request.form.get("middle_name", "")
+        last_name = request.form.get("last_name")
+        username = request.form.get("first_name", "")
+        email = request.form.get("email")
+        password = request.form.get("password1")
+
         # is it all there?
         if(errors):
             for error in errors:
@@ -94,7 +105,7 @@ def signup():
                 flash("Username is taken.", "warning")
                 return(redirect(url_for("site_auth.signup")))
         else:
-            if(username and len(username < 4)):
+            if(username and len(username) < 4):
                 flash("Username must be at least 4 characters; generating valid username.", "warning")
             username = generate_username(first_name, middle_name, last_name)
             flash(f"Your username is {username}. Save it for later.", "success")
@@ -107,7 +118,7 @@ def signup():
                 last_name=last_name,
                 username=username,
                 email=email,
-                password=gph(password1, method="pbkdf2")
+                password=gph(password, method="pbkdf2")
             )
             db.session.add(new_user)
             db.session.commit()
@@ -144,7 +155,7 @@ def login():
             return(redirect(url_for("site_auth.login")))
         
         # check password
-        if(check_password_hash(user.password, password)):
+        if(cph(user.password, password)):
             login_user(user, remember=True)
             flash(f"Welcome back, {user.first_name}.", "success")
             return(redirect(url_for("site_main.home")))
@@ -153,6 +164,13 @@ def login():
             return(redirect(url_for("site_auth.login")))
 
     return(render_template("login.html"))
+
+@site_auth.route("/Logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Logged out.", "success")
+    return(redirect(url_for("site_main.home")))
 
 @site_auth.route("/My-Account")
 @login_required

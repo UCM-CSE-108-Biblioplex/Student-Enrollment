@@ -1,6 +1,7 @@
 from werkzeug.security import check_password_hash as cph
-from flask import Blueprint, jsonify, g
+from flask import Blueprint, jsonify, g, request
 from flask_login import current_user
+from urllib.parse import unquote
 from functools import wraps
 from .models import User, APIKey
 
@@ -43,6 +44,16 @@ def requires_authentication(f):
 @api_main.route("/test")
 def test():
     return(jsonify({"test": "test"}))
+
+@api_main.route("/username")
+def username():
+    username = request.args.get("username", "")
+    username = unquote(username)
+    matching_users = User.query.filter_by(username=username).first()
+    if(matching_users):
+        return(jsonify({"valid": False}))
+    else:
+        return(jsonify({"valid": True}))
 
 @api_main.route("/classes/", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
