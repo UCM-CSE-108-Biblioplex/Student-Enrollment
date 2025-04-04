@@ -1,0 +1,80 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/signup.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <form class="flex flex-col gap-4 mx-auto mb-8" method="post" style="max-width: 480px" x-data="signup_form">
+        <h1>Sign Up</h1>
+        <div class="relative">
+            <input class="form-input" id="first_name" name="first_name" x-ref="first_name" placeholder="First Name" type="text" required @blur="first_name_touched = true">
+            <p class="form-invalid-text" x-show="first_name_touched && !$refs.first_name.validity.valid">First name is required</p>
+        </div>
+
+        <input class="form-input" id="middle_name" name="middle_name" placeholder="Middle Name (Optional)" type="text">
+
+        <div class="relative">
+            <input class="form-input" id="last_name" name="last_name" x-ref="last_name" placeholder="Last Name" type="text" required @blur="last_name_touched = true">
+            <p class="form-invalid-text" x-show="last_name_touched && !$refs.last_name.validity.valid">Last name is required</p>
+        </div>
+
+        <div class="relative">
+            <input class="form-input" id="username" name="username" x-ref="username" placeholder="Username (Optional)" type="text" @blur="username_touched = true" @input="check_username()" x-model="username" :class="{
+                'warning': username_touched && username.length > 0 && username.length < 4,
+                'checking': username_checking,
+                'invalid': username_touched && username.length >= 4 && username_taken,
+                'valid': username_touched && username.length >= 4 && username_valid
+            }">
+            <div class="username-loader" x-show="username_checking" x-cloak>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M20.0001 12C20.0001 13.3811 19.6425 14.7386 18.9623 15.9405C18.282 17.1424 17.3022 18.1477 16.1182 18.8587C14.9341 19.5696 13.5862 19.9619 12.2056 19.9974C10.825 20.0328 9.45873 19.7103 8.23975 19.0612" stroke="currentColor" stroke-width="3.55556" stroke-linecap="round"></path> </g></svg>
+            </div>
+            <p class="form-warning-text" x-show="username_touched && username.length > 0 && username.length < 4">Username must be at least 4 characters. A random username will be generated if too short.</p>
+            <p class="form-invalid-text" x-show="username_touched && username.length >= 4 && username_taken">Username already taken.</p>
+            <p class="form-valid-text" x-show="username_touched && username.length >= 4 && username_valid">Username available!</p>
+        </div>
+
+        <div class="relative">
+            <input class="form-input" id="email" name="email" x-ref="email" placeholder="Email" type="email" required @blur="email_touched = true" x-model="email">
+            <p class="form-invalid-text" x-show="email_touched && !$refs.email.validity.valid && email.length < 1">Email is required</p>
+            <p class="form-invalid-text" x-show="email_touched && !$refs.email.validity.valid && email.length > 1">Invalid Email</p>
+        </div>
+
+        <input
+            class="form-input"
+            id="password1"
+            name="password1"
+            x-ref="password1"
+            placeholder="Password"
+            type="password"
+            required
+            @blur="password1_touched = true"
+            x-model="password1"
+            @input="update_password_strength"
+        />
+        <p class="form-invalid-text" x-show="password1_touched && (password1.length < 6 || password1.length > 255)">Password must be between 6 and 255 characters.</p>
+        <p class="form-invalid-text" x-show="passwords_match()">Passwords must Match</p>
+
+        <div class="password-strength-container" x-show="password_strength">
+            <div class="password-strength-bar" :style="{ width: password_strength + '%' }" :class="password_strength_class"></div>
+            <span class="password-strength-label" x-text="password_strength_label"></span>
+        </div>
+
+        <input
+            class="form-input"
+            id="password2"
+            name="password2"
+            x-ref="password2"
+            placeholder="Confirm Password"
+            type="password"
+            required
+            @input="password2_touched = true"
+            x-model="password2"
+        />
+
+        <a class="mx-auto"><button class="btn btn-primary" type="submit">Sign Up</button></a>
+        <a class="mx-auto" href="{{ url_for('site_auth.login') }}">Already have an account? Log In!</a>
+    </form>
+</div>
+{% endblock %}
