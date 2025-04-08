@@ -1,0 +1,110 @@
+{% macro render_users_table(users, current_page=1, total_pages=1, total_users=0) %}
+<div class="table-wrapper">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Admin</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.first_name }} {% if user.middle_name %}{{ user.middle_name }}{% endif %} {{ user.last_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{% if user.is_admin %}<span class="admin-badge">Admin</span>{% else %}No{% endif %}</td>
+                <td>
+                    {% from "macros/modal.html" import modal_shell %}
+                    
+                    {% set trigger_html %}
+                    <button class="btn btn-primary btn-sm">Edit</button>
+                    {% endset %}
+                    
+                    {% set content_html %}
+                    <form id="edit-user-form-{{ user.id }}" x-data="editUserForm({{ user.to_dict()|tojson }})" @submit.prevent="submitForm">
+                        <div class="form-group">
+                            <label for="first_name-{{ user.id }}" class="form-label">First Name</label>
+                            <input type="text" id="first_name-{{ user.id }}" class="form-input" x-model="userData.first_name" required value="{{ user.first_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="middle_name-{{ user.id }}" class="form-label">Middle Name</label>
+                            <input type="text" id="middle_name-{{ user.id }}" class="form-input" x-model="userData.middle_name" value="{{ user.middle_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="last_name-{{ user.id }}" class="form-label">Last Name</label>
+                            <input type="text" id="last_name-{{ user.id }}" class="form-input" x-model="userData.last_name" required value="{{ user.last_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="username-{{ user.id }}" class="form-label">Username</label>
+                            <input type="text" id="username-{{ user.id }}" class="form-input" x-model="userData.username" required value="{{ user.username }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email-{{ user.id }}" class="form-label">Email</label>
+                            <input type="email" id="email-{{ user.id }}" class="form-input" x-model="userData.email" required value="{{ user.email }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="is_admin-{{ user.id }}" class="form-label">Admin Status</label>
+                            <div class="toggle-switch-wrapper">
+                                <input type="checkbox" id="is_admin-{{ user.id }}" class="toggle-switch-input" x-model="userData.is_admin">
+                                <label for="is_admin-{{ user.id }}" class="toggle-switch-button" :class="{ 'on': userData.is_admin }">
+                                    <span class="toggle-switch-thumb" :class="{ 'on': userData.is_admin }"></span>
+                                </label>
+                                <span class="toggle-switch-label" :class="{ 'on': userData.is_admin }">
+                                    <span x-text="userData.is_admin ? 'Admin' : 'Regular User'"></span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password-{{ user.id }}" class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" id="password-{{ user.id }}" class="form-input" x-model="userData.password">
+                        </div>
+                        
+                        <div class="form-message" x-show="message" :class="messageType">
+                            <span x-text="message"></span>
+                        </div>
+                    </form>
+                    {% endset %}
+                    
+                    {% set footer_html %}
+                    <button class="btn" @click="$dispatch('close-modal')">Cancel</button>
+                    <button class="btn btn-primary" form="edit-user-form-{{ user.id }}">Save Changes</button>
+                    {% endset %}
+                    
+                    {{ modal_shell(
+                        id='edit-user-modal-' + user.id|string,
+                        trigger_html=trigger_html,
+                        title='Edit User: ' + user.username,
+                        content_html=content_html,
+                        footer_html=footer_html,
+                        size='md'
+                    ) }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% from "macros/pagination.html" import pagination %}
+{{ pagination(current_page, total_pages, total_users) }}
+{% endmacro %}
+
+{% if users %}
+    {{ render_users_table(users, current_page, total_pages, total_users) }}
+{% else %}
+    <div class="empty-state">
+        <p>No users found.</p>
+    </div>
+{% endif %}
