@@ -1,22 +1,17 @@
-from flask import Blueprint, render_template
+from werkzeug.security import generate_password_hash as gph
+from werkzeug.security import check_password_hash as cph
+from flask import Blueprint, render_template, request, jsonify, abort, Response
 from flask_login import current_user
+from urllib.parse import unquote
 from functools import wraps
+from .models import User
 
 site_admin = Blueprint("site_admin", __name__)
 
-def admin_only(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if(not current_user.is_authenticated):
-            flash("Not Authorized", "error")
-            return(redirect(url_for("site_main.home")))
-        if(not current_user.is_admin):
-            flash("Not Authorized", "error")
-            return(redirect(url_for("site_main.home")))
-        return(f(*args, **kwargs))
-    return(decorated_function)
-
 @site_admin.route("/")
-@admin_only
 def admin_panel():
     return(render_template("admin_panel.html"))
+
+@site_admin.route("/Users")
+def users():
+    return(render_template("admin_users.html"))

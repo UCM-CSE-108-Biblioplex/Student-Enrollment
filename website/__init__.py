@@ -88,7 +88,7 @@ def create_database(app):
                 os.environ.get("DEFAULT_ADMIN_PASSWORD", "password"),
                 method="pbkdf2"
             ),
-
+            is_admin=True
         )
         db.session.add(admin_user)
 

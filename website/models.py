@@ -17,6 +17,9 @@ class User(db.Model, UserMixin):
         "Course", secondary="roles", back_populates="users"
     )
 
+    def to_dict(self):
+        return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
+
 class Course(db.Model):
     __tablename__ = "courses"
     id = db.Column(db.Integer, primary_key=True)
@@ -44,5 +47,6 @@ class APIKey(db.Model):
     __tablename__ = "keys"
     id = db.Column(db.Integer, primary_key=True)
     userid = db.Column(db.Integer, db.ForeignKey("users.id"))
+    is_admin = db.Column(db.Boolean, default=False)
     key = db.Column(db.String(255), nullable=False)
     expiry = db.Column(db.Integer, nullable=False)
