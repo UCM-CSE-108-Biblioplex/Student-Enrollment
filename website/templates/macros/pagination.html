@@ -1,0 +1,61 @@
+{% macro pagination(current_page, total_pages, total_items, per_page=50) %}
+<div class="pagination-container">
+    <p class="pagination-info">
+        Showing <span class="pagination-highlight">{{ ((current_page - 1) * per_page) + 1 }}</span> to 
+        <span class="pagination-highlight">{{ [current_page * per_page, total_items]|min }}</span> of 
+        <span class="pagination-highlight">{{ total_items }}</span> users
+    </p>
+    
+    <nav class="pagination-nav">
+        <ul class="pagination-list">
+            {% if current_page > 1 %}
+            <li class="pagination-item">
+                <a href="#" class="pagination-link"
+                   hx-get="/api/v1/users?page={{ current_page - 1 }}"
+                   hx-target="#users-table-container"
+                   hx-swap="innerHTML"
+                   hx-headers='{"Accept": "text/html"}'>
+                    Previous
+                </a>
+            </li>
+            {% else %}
+            <li class="pagination-item disabled">
+                <span class="pagination-link disabled">Previous</span>
+            </li>
+            {% endif %}
+            
+            {% set start_page = [current_page - 2, 1]|max %}
+            {% set end_page = [start_page + 4, total_pages]|min %}
+            {% set start_page = [end_page - 4, 1]|max %}
+            
+            {% for page in range(start_page, end_page + 1) %}
+            <li class="pagination-item {% if page == current_page %}active{% endif %}">
+                <a href="#" class="pagination-link {% if page == current_page %}active{% endif %}"
+                   hx-get="/api/v1/users?page={{ page }}"
+                   hx-target="#users-table-container"
+                   hx-swap="innerHTML"
+                   hx-headers='{"Accept": "text/html"}'>
+                    {{ page }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if current_page < total_pages %}
+            <li class="pagination-item">
+                <a href="#" class="pagination-link"
+                   hx-get="/api/v1/users?page={{ current_page + 1 }}"
+                   hx-target="#users-table-container"
+                   hx-swap="innerHTML"
+                   hx-headers='{"Accept": "text/html"}'>
+                    Next
+                </a>
+            </li>
+            {% else %}
+            <li class="pagination-item disabled">
+                <span class="pagination-link disabled">Next</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endmacro %}

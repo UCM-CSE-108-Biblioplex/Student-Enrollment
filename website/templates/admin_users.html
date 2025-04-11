@@ -2,45 +2,53 @@
 
 {% block head %}
 <script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
 <style>
-/* Admin panel specific styles */
-.admin-container {
-    padding: var(--space-6);
-}
-
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-}
-
-/* Table styles */
-.admin-table-container {
-    overflow-x: auto;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 2px 8px var(--shadow);
+/* === Admin Panel Styles === */
+.admin-panel {
     background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: 0 4px 6px var(--shadow);
+    margin-bottom: var(--space-8);
+}
+
+/* === Search Container === */
+.search-container {
+    margin-bottom: var(--space-4);
+}
+
+/* === Table Styles === */
+.table-wrapper {
+    overflow-x: auto;
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--surface-0);
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 0.875rem;
 }
 
 .admin-table th {
-    padding: var(--space-3) var(--space-4);
-    text-align: left;
-    font-weight: 600;
-    font-size: 0.875rem;
-    text-transform: uppercase;
+    background-color: var(--bg-tertiary);
     color: var(--text-secondary);
+    font-weight: 600;
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     border-bottom: 1px solid var(--surface-0);
 }
 
 .admin-table td {
     padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--surface-0);
+    color: var(--text-primary);
 }
 
 .admin-table tr:last-child td {
@@ -51,49 +59,44 @@
     background-color: rgba(var(--surface-0-rgb), 0.5);
 }
 
-/* Search input styles */
-.search-container {
-    position: relative;
-    max-width: 400px;
-    margin-bottom: var(--space-4);
-}
-
-.search-input {
-    width: 100%;
-    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-8);
-    border: 1px solid var(--surface-0);
+.admin-badge {
+    display: inline-block;
+    background-color: var(--accent);
+    color: var(--bg-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-md);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
 }
 
-.search-icon {
-    position: absolute;
-    left: var(--space-3);
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
+.btn-sm {
+    font-size: 0.875rem;
+    padding: var(--space-1) var(--space-3);
 }
 
-/* Pagination styles */
-.pagination {
+/* === Pagination Styles === */
+.pagination-container {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: var(--space-4);
-    /* margin-top: auto; */
-    padding: var(--space-3) var(--space-4);
+    justify-content: space-between;
+    padding: var(--space-4);
+    border-top: 1px solid var(--surface-0);
     background-color: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--surface-0);
+    flex-wrap: wrap;
+    gap: var(--space-4);
 }
 
 .pagination-info {
-    font-size: 0.875rem;
     color: var(--text-secondary);
+    font-size: 0.875rem;
 }
 
-.pagination-controls {
+.pagination-highlight {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.pagination-nav {
     display: flex;
     align-items: center;
 }
@@ -101,15 +104,20 @@
 .pagination-list {
     display: flex;
     list-style: none;
-    margin: 0;
     padding: 0;
+    margin: 0;
     border: 1px solid var(--surface-0);
     border-radius: var(--radius-md);
     overflow: hidden;
 }
 
 .pagination-item {
-    height: 36px;
+    height: 2.25rem;
+    border-right: 1px solid var(--surface-0);
+}
+
+.pagination-item:last-child {
+    border-right: none;
 }
 
 .pagination-link {
@@ -118,375 +126,96 @@
     justify-content: center;
     height: 100%;
     padding: 0 var(--space-3);
-    color: var(--text-primary);
+    color: var(--text-secondary);
     text-decoration: none;
-    position: relative;
-    transition: color var(--transition-fast) var(--ease-out),
-                            background-color var(--transition-fast) var(--ease-out);
+    transition: background-color var(--transition-fast) var(--ease-out),
+                color var(--transition-fast) var(--ease-out);
 }
 
-.pagination-link:hover {
+.pagination-link:hover:not(.disabled) {
     background-color: var(--surface-0);
     color: var(--text-primary);
 }
 
 .pagination-link.active {
-    background-color: var(--surface-1);
-    color: var(--text-primary);
-    font-weight: 500;
-}
-
-.pagination-separator {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    padding: 0 var(--space-2);
-    color: var(--text-secondary);
-}
-
-/* Modal styles */
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(var(--bg-primary-rgb), 0.7);
-    backdrop-filter: blur(4px);
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal {
-    background-color: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 10px 25px var(--shadow);
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-4) var(--space-6);
-    border-bottom: 1px solid var(--surface-0);
-}
-
-.modal-title {
-    font-size: 1.25rem;
+    background-color: var(--accent);
+    color: var(--bg-primary);
     font-weight: 600;
 }
 
-.modal-close {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-full);
-    transition: background-color var(--transition-fast) var(--ease-out);
+.pagination-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-.modal-close:hover {
-    background-color: var(--surface-0);
-    color: var(--text-primary);
-}
-
-.modal-body {
-    padding: var(--space-6);
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-6);
-    border-top: 1px solid var(--surface-0);
-}
-
-/* Action buttons */
-.action-btn {
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    transition: background-color var(--transition-fast) var(--ease-out);
-    background-color: var(--surface-1);
-    border-width: 0;
-}
-
-.action-btn:hover {
-    background-color: var(--surface-0);
-}
-
-.action-btn.edit {
-    color: var(--accent);
-}
-
-.action-btn.delete {
-    color: var(--latte-red);
-}
-
-html.dark-theme .action-btn.delete {
-    color: var(--mocha-red);
-}
-
-/* Admin badge */
-.admin-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.125rem 0.5rem;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 500;
+.pagination-item.active {
     background-color: var(--accent);
-    color: var(--bg-primary);
 }
 
-/* Loading spinner */
-.spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid var(--surface-1);
-    border-radius: 50%;
-    border-top-color: var(--accent);
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: var(--space-8);
-}
-
-/* Empty state */
+/* === Empty State === */
 .empty-state {
     text-align: center;
     padding: var(--space-8);
     color: var(--text-secondary);
 }
 
-.empty-state-icon {
-    font-size: 3rem;
-    margin-bottom: var(--space-4);
-    opacity: 0.5;
+/* === Form Message === */
+.form-message {
+    padding: var(--space-3);
+    margin-top: var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+}
+
+.form-message.success {
+    background-color: rgba(var(--latte-green), 0.1);
+    color: var(--latte-green);
+    border: 1px solid var(--latte-green);
+}
+
+html.dark-theme .form-message.success {
+    background-color: rgba(var(--mocha-green), 0.1);
+    color: var(--mocha-green);
+    border: 1px solid var(--mocha-green);
+}
+
+.form-message.error {
+    background-color: rgba(var(--latte-red), 0.1);
+    color: var(--latte-red);
+    border: 1px solid var(--latte-red);
+}
+
+html.dark-theme .form-message.error {
+    background-color: rgba(var(--mocha-red), 0.1);
+    color: var(--mocha-red);
+    border: 1px solid var(--mocha-red);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pagination-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .pagination-nav {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="container admin-container" x-data="adminUsers">
-    <div class="admin-header">
-        <h1>User Management</h1>
-        <button class="btn btn-primary" @click="openCreateModal()">Add New User</button>
-    </div>
+<div class="container mt-8">
+    <h1 class="mb-4">User Administration</h1>
     
-    <!-- Search Component -->
-    <div class="search-container">
-        <span class="search-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-        </span>
-        <input 
-            type="text" 
-            class="search-input" 
-            placeholder="Search users by username..." 
-            x-model="searchQuery"
-            @input="debouncedSearch()"
-        >
-    </div>
-    
-    <!-- Table Component -->
-    <div class="admin-table-container">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Admin</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <template x-if="loading">
-                    <tr>
-                        <td colspan="6">
-                            <div class="loading-container">
-                                <div class="spinner"></div>
-                            </div>
-                        </td>
-                    </tr>
-                </template>
-                
-                <template x-if="!loading && users.length === 0">
-                    <tr>
-                        <td colspan="6">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">🔍</div>
-                                <p>No users found. Try adjusting your search criteria.</p>
-                            </div>
-                        </td>
-                    </tr>
-                </template>
-                
-                <template x-for="user in users" :key="user.id">
-                    <tr>
-                        <td x-text="user.id"></td>
-                        <td x-text="formatName(user)"></td>
-                        <td x-text="user.username"></td>
-                        <td x-text="user.email"></td>
-                        <td>
-                            <span x-show="user.is_admin" class="admin-badge">Admin</span>
-                        </td>
-                        <td>
-                            <div class="flex gap-2">
-                                <button class="action-btn edit" @click="openEditModal(user)">Edit</button>
-                                <button class="action-btn delete" @click="openDeleteModal(user)">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                </template>
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- Pagination Component -->
-    <div class="pagination" x-show="!loading && users.length > 0">
-        <div class="pagination-info">
-            Showing <span x-text="startIndex + 1"></span> to <span x-text="Math.min(endIndex, totalUsers)"></span> of <span x-text="totalUsers"></span> users
-        </div>
-        <div class="pagination-controls">
-            <ul class="pagination-list">
-                <li class="pagination-item">
-                    <a href="#" class="pagination-link" @click.prevent="prevPage" :class="{ 'disabled': currentPage === 1 }">Previous</a>
-                </li>
-                
-                <template x-for="page in displayedPages" :key="page">
-                    <template x-if="page !== '...'">
-                        <li class="pagination-item">
-                            <a href="#" class="pagination-link" :class="{ 'active': currentPage === page }" @click.prevent="goToPage(page)" x-text="page"></a>
-                        </li>
-                    </template>
-                    <template x-if="page === '...'">
-                        <li class="pagination-item">
-                            <span class="pagination-separator">...</span>
-                        </li>
-                    </template>
-                </template>
-                
-                <li class="pagination-item">
-                    <a href="#" class="pagination-link" @click.prevent="nextPage" :class="{ 'disabled': currentPage === totalPages }">Next</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Edit User Modal Component -->
-    <div class="modal-backdrop" x-show="showEditModal" x-cloak x-transition @click.self="closeEditModal">
-        <div class="modal" @click.outside="closeEditModal">
-            <div class="modal-header">
-                <h3 class="modal-title" x-text="editingUser.id ? 'Edit User' : 'Create User'"></h3>
-                <button class="modal-close" @click="closeEditModal">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form @submit.prevent="saveUser">
-                    <div class="form-group">
-                        <label class="form-label" for="first_name">First Name</label>
-                        <input type="text" id="first_name" class="form-input" x-model="editingUser.first_name" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="middle_name">Middle Name</label>
-                        <input type="text" id="middle_name" class="form-input" x-model="editingUser.middle_name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="last_name">Last Name</label>
-                        <input type="text" id="last_name" class="form-input" x-model="editingUser.last_name" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="username">Username</label>
-                        <input type="text" id="username" class="form-input" x-model="editingUser.username" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email</label>
-                        <input type="email" id="email" class="form-input" x-model="editingUser.email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="password">Password</label>
-                        <input type="password" id="password" class="form-input" x-model="editingUser.password" :placeholder="editingUser.id ? 'Leave blank to keep current password' : 'Enter password'">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Admin Status</label>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="is_admin" x-model="editingUser.is_admin">
-                            <label for="is_admin">User is an administrator</label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" @click="closeEditModal">Cancel</button>
-                <button class="btn btn-primary" @click="saveUser" :disabled="saving">
-                    <span x-show="!saving" x-text="editingUser.id ? 'Update User' : 'Create User'"></span>
-                    <span x-show="saving" class="spinner"></span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Delete Confirmation Modal Component -->
-    <div class="modal-backdrop" x-show="showDeleteModal" x-cloak x-transition @click.self="closeDeleteModal">
-        <div class="modal" @click.outside="closeDeleteModal">
-            <div class="modal-header">
-                <h3 class="modal-title">Confirm Deletion</h3>
-                <button class="modal-close" @click="closeDeleteModal">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete the user <strong x-text="deletingUser.username"></strong>?</p>
-                <p class="mt-2">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" @click="closeDeleteModal">Cancel</button>
-                <button class="btn btn-primary" @click="deleteUser" :disabled="deleting">
-                    <span x-show="!deleting">Delete User</span>
-                    <span x-show="deleting" class="spinner"></span>
-                </button>
-            </div>
+    <div class="admin-panel">
+        {% from "macros/search_input.html" import search_input %}
+        {{ search_input() }}
+        
+        <div id="users-table-container" class="mt-4">
+            {% include "macros/users_table.html" %}
         </div>
     </div>
 </div>
