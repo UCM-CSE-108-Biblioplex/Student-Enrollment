@@ -32,23 +32,88 @@
     {% endset %}
 
     {% set content_html %}
-    <div class="user-details">
-        <p><strong>ID:</strong> {{ user.id }}</p>
-        <p><strong>Username:</strong> {{ user.username }}</p>
-        <p><strong>Name:</strong> 
-            {{ user.first_name }} 
-            {% if user.middle_name %}{{ user.middle_name }} {% endif %}
-            {{ user.last_name }}
-        </p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Admin:</strong> {% if user.is_admin %}Yes{% else %}No{% endif %}</p>
-        <!-- Add more user details as needed -->
-    </div>
+    <form id="user-{{ user.id }}-form">
+        <input type="hidden" style="display: none" value="{{ user.id }}" name="user_id" id="user-{{ user.id }}-id">
+        <div class="form-group">
+            <label for="user-{{ user.id }}-username">Username:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-username" name="username" placeholder="Username" value="{{ user.username }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-first-name">First Name:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-first-name" name="first_name" placeholder="First Name" value="{{ user.first_name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-middle-name">Middle Name:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-middle-name" name="middle_name" placeholder="Middle Name (Nullable)" value="{{ user.middle_name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-last-name">Last Name:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-last-name" name="last_name" placeholder="Last Name" value="{{ user.last_name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-email">Email:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-email" name="email" placeholder="Email" value="{{ user.email }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-password">Password (Leave Blank to Keep Unchanged):</label>
+            <input class="form-input" type="password" id="user-{{ user.id }}-password" name="password" placeholder="Password">
+        </div>
+
+        <div class="form-group" x-data="{isOn: {{ 'true' if user.is_admin else 'false' }}}">
+            <input 
+                type="checkbox" 
+                name="is-admin" 
+                id="user-{{ user.id }}-is-admin" 
+                class="toggle-switch-input" 
+                x-model="isOn"
+                value="{{ 'on' if user.is_admin else 'off' }}"
+                tabindex="-1"
+                aria-hidden="true">
+    
+            <button 
+                type="button" 
+                @click="isOn = !isOn; $refs.input.focus()"
+                x-ref="input"
+                role="switch" 
+                :aria-checked="isOn.toString()"
+                :class="{ 'on': isOn }"
+                class="toggle-switch-button"
+                aria-labelledby="user-{{ user.id }}-is-admin-label">
+                <span class="toggle-switch-thumb" :class="{ 'on': isOn }"></span>
+            </button>
+    
+            <label 
+                id="user-{{ user.id }}-is-admin-label"
+                @click="$refs.input.click(); $refs.input.focus()"
+                class="toggle-switch-label"
+                :class="{ 'on': isOn }">
+                Administrator
+            </label>
+        </div>
+    </form>
     {% endset %}
 
     {% set footer_html %}
     <button class="btn" @click="open = false">Close</button>
-    <button class="btn btn-primary">Edit User</button>
+    <button 
+        class="btn btn-primary" 
+        hx-put="{{ url_for('api_main.users') }}" 
+        hx-include="#user-{{ user.id }}-form" 
+        hx-encoding="application/json" 
+        hx-on="htmx:afterRequest: window.location.reload ()" 
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#{{ trigger_id }}"
+        hx-swap="innerHTML"
+        @htmx:after-settle="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Load Data
+    </button>    
     {% endset %}
 
     {{ modal_shell(

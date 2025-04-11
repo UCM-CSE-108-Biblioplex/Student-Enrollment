@@ -128,7 +128,11 @@ def create_user(request):
     return(new_user)
 
 def edit_user(request):
-    data = request.get_json()
+    content_type = request.headers.get("Content-Type")
+    if(content_type == "application/x-www-form-urlencoded"):
+        data = request.form
+    else:
+        data = request.get_json()
     if(data is None):
         abort(Response("No request JSON.", 400))
     
@@ -243,10 +247,6 @@ def users():
             # Return JSON for API requests
             return jsonify([user.to_dict() for user in users])
     
-    # Rest of the code remains the same...
-
-
-    
     # create new user
     if(request.method == "POST"):
         new_user = create_user(request)
@@ -264,10 +264,53 @@ def users():
         try:
             db.session.add(target_user)
             db.session.commit()
-            return(jsonify(target_user.to_dict()))
         except Exception as e:
             db.session.rollback()
             abort(Response(f"A database error occurred: {str(e)}", 500))
+        
+        accept_header = request.headers.get("Accept", "")
+        if("text/html" in accept_header):
+            # Return HTML for HTMX requests
+            current_page = target_user.id // 50 + 1
+            pagination = User.query.paginate(page=current_page, per_page=50)
+            users = pagination.items
+            titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
+            total_pages = pagination.pages
+            total_users = pagination.total
+            rows = []
+
+            def parse_name(user):
+                name = user.first_name + " "
+                if(user.middle_name):
+                    name += user.middle_name
+                    name += " "
+                name += user.last_name
+                return(name)
+                
+            for user in users:
+                # Create a button that will trigger the modal
+                action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
+                rows.append([
+                    user.id,
+                    user.username,
+                    parse_name(user),
+                    user.email,
+                    "Yes" if user.is_admin else "No",
+                    action_button
+                ])
+
+            return render_template(
+                "macros/users_content.html", 
+                users=users,
+                rows=rows,
+                titles=titles,
+                current_page=current_page,
+                total_pages=total_pages,
+                total_users=total_users,
+                items_per_page=50
+            )
+        else:
+            return(jsonify(target_user.to_dict()))
     
     # delete user
     if(request.method == "DELETE"):

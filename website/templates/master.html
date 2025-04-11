@@ -13,6 +13,7 @@
 </head>
 
 <body x-data="master">
+<div class="htmx-indicator htmx-progress-bar" id="global-htmx-indicator"></div>
 <nav class="top-navbar">
 	<a class="topnav-link" href="{{ url_for('site_main.home') }}"><span>Home</span></a>
 	{% if current_user.is_authenticated %}
