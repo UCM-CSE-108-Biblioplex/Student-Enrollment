@@ -15,7 +15,7 @@ Args:
 <div x-data="{ open: false }" 
      @keydown.escape.window="open = false"
      class="modal-trigger-wrapper"
-     @close-modal.window="open = false; console.log('???')"> {# Simple wrapper, might not be needed #}
+     @close-modal.window="open = false"> {# Simple wrapper, might not be needed #}
 
     {# Trigger Slot #}
     <div @click="open = true">
