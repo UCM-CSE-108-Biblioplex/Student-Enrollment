@@ -27,7 +27,15 @@
                     {% endset %}
                     
                     {% set content_html %}
-                    <form id="edit-user-form-{{ user.id }}" x-data="editUserForm({{ user.to_dict()|tojson }})" @submit.prevent="submitForm">
+                    <form id="edit-user-form-{{ user.id }}" x-data="editUserForm({
+                        user_id: {{ user.id }},
+                        first_name: '{{ user.first_name }}',
+                        middle_name: '{{ user.middle_name or '' }}',
+                        last_name: '{{ user.last_name }}',
+                        username: '{{ user.username }}',
+                        email: '{{ user.email }}',
+                        is_admin: {{ 'true' if user.is_admin else 'false' }},
+                    })" @submit.prevent="submitForm">
                         <div class="form-group">
                             <label for="first_name-{{ user.id }}" class="form-label">First Name</label>
                             <input type="text" id="first_name-{{ user.id }}" class="form-input" x-model="userData.first_name" required value="{{ user.first_name }}">

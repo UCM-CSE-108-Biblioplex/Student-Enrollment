@@ -6,6 +6,7 @@ from urllib.parse import unquote
 from functools import wraps
 from .models import User, APIKey
 from . import db
+import re
 
 api_main = Blueprint("api_main", __name__)
 
@@ -132,7 +133,7 @@ def edit_user(request):
         abort(Response("No request JSON.", 400))
     
     # get user
-    user_id = data.get("id", None)
+    user_id = data.get("user_id", None)
     if(not user_id):
         abort(Response("User ID is required.", 400))
     target_user = User.query.get(user_id)
@@ -152,7 +153,7 @@ def edit_user(request):
     username = data.get("username", None)
     if(username):
         existing_user = User.query.filter_by(username=username).first()
-        if(existing_user and existing_user != target_user):
+        if(existing_user and existing_user.id != target_user.id):
             abort(Response("Username is already taken", 400))
         target_user.username = username
     generate_new_username = data.get("generate_new_username", False)
@@ -164,7 +165,7 @@ def edit_user(request):
     email = data.get("email", None)
     if(email):
         existing_user = User.query.filter_by(email=email).first()
-        if(existing_user and existing_user != target_user):
+        if(existing_user and existing_user.id != target_user.id):
             abort(Response("Email is in use by another user.", 400))
         target_user.email = email
     
@@ -191,13 +192,13 @@ def delete_user(request):
     if(not target_user):
         abort(Response("User not found", 404))
     
-    return(target_user)
+    return(target_user)    
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
-# @requires_authentication
+@requires_authentication
 def users():
-    # if(not g.user.is_admin): # placeholder for now
-        # abort(Response("Insufficient permissions.", 403))
+    if(not g.user.is_admin): # placeholder for now
+        abort(Response("Insufficient permissions.", 403))
     
     if(request.method == "GET"):
         users, current_page, total_pages, total_users = get_users(request)

@@ -14,7 +14,8 @@ Args:
 #}
 <div x-data="{ open: false }" 
      @keydown.escape.window="open = false"
-     class="modal-trigger-wrapper"> {# Simple wrapper, might not be needed #}
+     class="modal-trigger-wrapper"
+     @close-modal.window="open = false; console.log('???')"> {# Simple wrapper, might not be needed #}
 
     {# Trigger Slot #}
     <div @click="open = true">
@@ -40,8 +41,9 @@ Args:
                  class="modal-overlay modal-overlay-{{ overlay_style }}"></div>
 
             {# Panel #}
+
+            <!-- x-trap.inert.noscroll="open" -->
             <div x-show="open"
-                 x-trap.inert.noscroll="open"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 transform scale-95" {# Common transition #}
                  x-transition:enter-end="opacity-100 transform scale-100"
