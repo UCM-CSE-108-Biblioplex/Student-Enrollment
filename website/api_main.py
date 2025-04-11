@@ -130,7 +130,6 @@ def edit_user(request):
     data = request.get_json()
     if(data is None):
         abort(Response("No request JSON.", 400))
-        abort(Response("No request JSON.", 400))
     
     # get user
     user_id = data.get("id", None)
