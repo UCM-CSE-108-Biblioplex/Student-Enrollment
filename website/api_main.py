@@ -4,6 +4,7 @@ from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
 from .models import User, APIKey
+from . import db
 
 api_main = Blueprint("api_main", __name__)
 
@@ -121,10 +122,10 @@ def create_user(request):
 def edit_user(request):
     data = request.get_json()
     if(data is None):
-        abort(Response("No reqyest JSON.", 400))
+        abort(Response("No request JSON.", 400))
     
     # get user
-    user_id = data.get("user_id", None)
+    user_id = data.get("id", None)
     if(not user_id):
         abort(Response("User ID is required.", 400))
     target_user = User.query.get(user_id)
@@ -144,7 +145,7 @@ def edit_user(request):
     username = data.get("username", None)
     if(username):
         existing_user = User.query.filter_by(username=username).first()
-        if(existing_user):
+        if(existing_user and existing_user != target_user):
             abort(Response("Username is already taken", 400))
         target_user.username = username
     generate_new_username = data.get("generate_new_username", False)
@@ -155,8 +156,8 @@ def edit_user(request):
         target_user.username = generate_username(first_name, middle_name, last_name)
     email = data.get("email", None)
     if(email):
-        existing_user = user.query.filter_by(email=email).first()
-        if(existing_user):
+        existing_user = User.query.filter_by(email=email).first()
+        if(existing_user and existing_user != target_user):
             abort(Response("Email is in use by another user.", 400))
         target_user.email = email
     
