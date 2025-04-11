@@ -32,7 +32,7 @@
     {% endset %}
 
     {% set content_html %}
-    <form id="user-{{ user.id }}-form">
+    <form id="user-{{ user.id }}-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
         <input type="hidden" style="display: none" value="{{ user.id }}" name="user_id" id="user-{{ user.id }}-id">
         <div class="form-group">
             <label for="user-{{ user.id }}-username">Username:</label>
@@ -108,7 +108,7 @@
         hx-headers='{"Accept": "text/html"}'
         hx-target="#users-content"
         hx-swap="innerHTML"
-        @htmx:afterSettle="open = false; console.log('form submitted')">
+        @htmx:afterSettle="open = false">
         {% from "macros/indicator.html" import htmx_indicator %}
         {{ htmx_indicator(type="spinner", size="sm") }}
         Save Changes

@@ -7,3 +7,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+document.addEventListener('alpine:init', () => {
+    Alpine.data("param", () => ({
+        updateURLParam (param, value) {
+            const url = new URL (window.location.href);
+            url.searchParams.set(param, value);
+            window.history.pushState ({}, '', url);
+        }
+    }))
+})
