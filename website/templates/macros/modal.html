@@ -1,84 +1,67 @@
 {% macro modal_shell(id, trigger_html, title, content_html, footer_html=None, size='md', overlay_style='dark', panel_style='bordered') %}
-{# 
-Renders a modal dialog component.
-
-Args:
-    id (str): Base ID for the modal elements.
-    trigger_html (str): Raw HTML for the trigger element (button, link, etc.).
-    title (str): Text for the modal header.
-    content_html (str): Raw HTML for the main content area of the modal.
-    footer_html (str, optional): Raw HTML for the optional footer area (e.g., action buttons). Defaults to None.
-    size (str, optional): Size class ('sm', 'md', 'lg', 'xl'). Defaults to 'md'.
-    overlay_style (str, optional): Style for the backdrop ('dark', 'light', 'blur'). Defaults to 'dark'.
-    panel_style (str, optional): Style for the modal panel ('simple', 'bordered', 'frosted'). Defaults to 'bordered'.
-#}
 <div x-data="{ open: false }" 
      @keydown.escape.window="open = false"
      class="modal-trigger-wrapper"
-     @close-modal.window="open = false"> {# Simple wrapper, might not be needed #}
+     @close-modal.window="open = false">
 
     {# Trigger Slot #}
     <div @click="open = true">
         {{ trigger_html | safe }}
     </div>
 
-    {# Modal Structure (Teleported) #}
-    <template x-teleport="body">
-        <div x-show="open" 
-             class="modal-container" 
-             id="{{ id }}-container" 
-             x-cloak>
+    {# Modal Structure (No teleport) #}
+    <div x-show="open" 
+         class="modal-container" 
+         id="{{ id }}-container" 
+         x-cloak>
+        
+        {# Overlay #}
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="open = false" 
+             class="modal-overlay modal-overlay-{{ overlay_style }}"></div>
+
+        {# Panel #}
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95"
+             class="modal-panel modal-panel-{{ panel_style }} modal-size-{{ size }}"
+             role="dialog" 
+             aria-modal="true" 
+             aria-labelledby="{{ id }}-title">
             
-            {# Overlay #}
-            <div x-show="open"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 @click="open = false" 
-                 class="modal-overlay modal-overlay-{{ overlay_style }}"></div>
-
-            {# Panel #}
-
-            <!-- x-trap.inert.noscroll="open" -->
-            <div x-show="open"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 transform scale-95" {# Common transition #}
-                 x-transition:enter-end="opacity-100 transform scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 transform scale-100"
-                 x-transition:leave-end="opacity-0 transform scale-95"
-                 class="modal-panel modal-panel-{{ panel_style }} modal-size-{{ size }}"
-                 role="dialog" 
-                 aria-modal="true" 
-                 aria-labelledby="{{ id }}-title">
-                
-                {# Header #}
-                <div class="modal-header">
-                    <h3 class="modal-title" id="{{ id }}-title">{{ title }}</h3>
-                    <button @click="open = false" class="modal-close-button" aria-label="Close modal">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-
-                {# Content Slot #}
-                <div class="modal-content">
-                    {{ content_html | safe }}
-                </div>
-
-                {# Footer Slot (Optional) #}
-                {% if footer_html %}
-                <div class="modal-footer">
-                    {{ footer_html | safe }}
-                </div>
-                {% endif %}
+            {# Header #}
+            <div class="modal-header">
+                <h3 class="modal-title" id="{{ id }}-title">{{ title }}</h3>
+                <button @click="open = false" class="modal-close-button" aria-label="Close modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
+
+            {# Content Slot #}
+            <div class="modal-content">
+                {{ content_html | safe }}
+            </div>
+
+            {# Footer Slot (Optional) #}
+            {% if footer_html %}
+            <div class="modal-footer">
+                {{ footer_html | safe }}
+            </div>
+            {% endif %}
         </div>
-    </template>
+    </div>
 </div>
 {% endmacro %}

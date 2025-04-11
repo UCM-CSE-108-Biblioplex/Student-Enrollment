@@ -67,14 +67,14 @@
         <div class="form-group" x-data="{isOn: {{ 'true' if user.is_admin else 'false' }}}">
             <input 
                 type="checkbox" 
-                name="is-admin" 
+                name="is_admin" 
                 id="user-{{ user.id }}-is-admin" 
                 class="toggle-switch-input" 
                 x-model="isOn"
-                value="{{ 'on' if user.is_admin else 'off' }}"
+                :value="isOn ? 'true' : 'false'"
                 tabindex="-1"
                 aria-hidden="true">
-    
+        
             <button 
                 type="button" 
                 @click="isOn = !isOn; $refs.input.focus()"
@@ -86,15 +86,15 @@
                 aria-labelledby="user-{{ user.id }}-is-admin-label">
                 <span class="toggle-switch-thumb" :class="{ 'on': isOn }"></span>
             </button>
-    
+        
             <label 
                 id="user-{{ user.id }}-is-admin-label"
-                @click="$refs.input.click(); $refs.input.focus()"
+                @click="isOn = !isOn; $refs.input.focus()"
                 class="toggle-switch-label"
                 :class="{ 'on': isOn }">
                 Administrator
             </label>
-        </div>
+        </div>        
     </form>
     {% endset %}
 
@@ -105,15 +105,14 @@
         hx-put="{{ url_for('api_main.users') }}" 
         hx-include="#user-{{ user.id }}-form" 
         hx-encoding="application/json" 
-        hx-on="htmx:afterRequest: window.location.reload ()" 
         hx-headers='{"Accept": "text/html"}'
-        hx-target="#{{ trigger_id }}"
+        hx-target="#users-content"
         hx-swap="innerHTML"
-        @htmx:after-settle="open = false">
+        @htmx:afterSettle="open = false; console.log('form submitted')">
         {% from "macros/indicator.html" import htmx_indicator %}
         {{ htmx_indicator(type="spinner", size="sm") }}
-        Load Data
-    </button>    
+        Save Changes
+    </button> 
     {% endset %}
 
     {{ modal_shell(

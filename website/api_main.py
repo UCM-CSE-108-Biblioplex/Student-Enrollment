@@ -98,6 +98,10 @@ def create_user(request):
         abort(Response("No request JSON", 400))
     
     is_admin = data.get("is_admin", False)
+    if(is_admin is not None):
+        if isinstance(is_admin, str):
+            is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
+        target_user.is_admin = is_admin
 
     first_name = data.get("first_name", None)
     if(not first_name):
@@ -286,7 +290,7 @@ def users():
                     name += " "
                 name += user.last_name
                 return(name)
-                
+
             for user in users:
                 # Create a button that will trigger the modal
                 action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
