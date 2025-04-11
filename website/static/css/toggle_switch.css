@@ -1,0 +1,70 @@
+/* === Toggle Switch Component === */
+.toggle-switch-wrapper {
+    display: inline-flex; /* Align items horizontally */
+    align-items: center;
+    gap: var(--space-3);
+    cursor: pointer; /* Indicate the whole thing is clickable via label */
+}
+
+/* Visually hide the checkbox but keep it accessible */
+.toggle-switch-input {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    white-space: nowrap; 
+}
+
+.toggle-switch-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 24px; /* Track height */
+    width: 44px; /* Track width */
+    flex-shrink: 0; /* Prevent shrinking */
+    background-color: var(--surface-1); /* Off state background */
+    border-radius: var(--radius-full);
+    border: 1px solid transparent; /* For focus state */
+    cursor: pointer;
+    transition: background-color var(--transition-normal) var(--ease-out),
+        border-color var(--transition-normal) var(--ease-out);
+}
+.toggle-switch-button.on {
+    background-color: var(--accent); /* On state background */
+}
+
+.toggle-switch-thumb {
+    display: block;
+    width: 18px; /* Thumb size */
+    height: 18px; /* Thumb size */
+    background-color: var(--bg-primary); /* Thumb color */
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transform: translateX(2px); /* Initial position (off) */
+    transition: transform var(--transition-normal) var(--ease-out);
+    pointer-events: none; /* Prevent thumb interfering with button click */
+}
+.toggle-switch-thumb.on {
+    transform: translateX(22px); /* Final position (on) - track width - thumb width - offset */
+}
+
+/* Focus state on the button */
+.toggle-switch-button:focus {
+    outline: none;
+    border-color: transparent; /* Hide border if using ring */
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent); /* Ring effect */
+}
+
+.toggle-switch-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    user-select: none; /* Prevent text selection on click */
+    transition: color var(--transition-normal) var(--ease-out);
+}
+.toggle-switch-label.on {
+    color: var(--text-primary); /* Style label when switch is on */
+}

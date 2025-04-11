@@ -1,0 +1,22 @@
+{% macro table(id, rows, titles, variant="", responsive=true) %}
+<div class="table-container" id="{{ id }}">
+    <table class="table {% if variant %}table-{{ variant }}{% endif %} {% if responsive %}table-responsive{% endif %}">
+        <thead>
+            <tr>
+                {% for title in titles %}
+                    <th>{{ title }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                {% for datum in row %}
+                    <td {% if responsive %}data-label="{{ titles[loop.index0] }}"{% endif %}>{{ datum | safe }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}

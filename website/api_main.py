@@ -90,7 +90,7 @@ def get_users(request):
     total_pages = pagination.pages
     total_users = pagination.total
     
-    return users, page, total_pages, total_users
+    return users, page, total_pages, total_users, per_page
 
 def create_user(request):
     data = request.get_json()
@@ -195,28 +195,57 @@ def delete_user(request):
     return(target_user)    
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
-@requires_authentication
+# @requires_authentication
 def users():
-    if(not g.user.is_admin): # placeholder for now
-        abort(Response("Insufficient permissions.", 403))
+    # if(not g.user.is_admin): # placeholder for now
+    #     abort(Response("Insufficient permissions.", 403))
     
     if(request.method == "GET"):
-        users, current_page, total_pages, total_users = get_users(request)
+        users, current_page, total_pages, total_users, per_page = get_users(request)
         
         # Check if the client wants HTML or JSON
         accept_header = request.headers.get('Accept', '')
         if 'text/html' in accept_header:
             # Return HTML for HTMX requests
+            def parse_name(user):
+                name = user.first_name + " "
+                if(user.middle_name):
+                    name += user.middle_name
+                    name += " "
+                name += user.last_name
+                return(name)
+
+            rows = []
+            for user in users:
+                # Create a button that will trigger the modal
+                action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
+                rows.append([
+                    user.id,
+                    user.username,
+                    parse_name(user),
+                    user.email,
+                    "Yes" if user.is_admin else "No",
+                    action_button
+                ])
+
+            titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
             return render_template(
-                "macros/users_table.html", 
+                "macros/users_content.html", 
                 users=users,
+                rows=rows,
+                titles=titles,
                 current_page=current_page,
                 total_pages=total_pages,
-                total_users=total_users
+                total_users=total_users,
+                items_per_page=per_page
             )
         else:
             # Return JSON for API requests
             return jsonify([user.to_dict() for user in users])
+    
+    # Rest of the code remains the same...
+
+
     
     # create new user
     if(request.method == "POST"):

@@ -52,11 +52,36 @@ def users():
     
     # Initial load of users
     users, current_page, total_pages, total_users = get_users(request)
+
+    def parse_name(user):
+        name = user.first_name + " "
+        if(user.middle_name):
+            name += user.middle_name
+            name += " "
+        name += user.last_name
+        return(name)
+
+    rows = []
+    for user in users:
+        action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
+        rows.append([
+            user.id,
+            user.username,
+            parse_name(user),
+            user.email,
+            "Yes" if user.is_admin else "No",
+            action_button
+        ])
+
+    titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
     
     return render_template(
         "admin_users.html", 
         users=users,
+        rows=rows,
+        titles=titles,
         current_page=current_page,
         total_pages=total_pages,
-        total_users=total_users
+        total_users=total_users,
+        items_per_page=50
     )

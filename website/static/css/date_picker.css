@@ -1,0 +1,159 @@
+/* === Date Picker Component === */
+.datepicker-input-container {
+    position: relative;
+    display: flex; /* Align input and button */
+}
+
+.datepicker-display-input {
+    /* Uses existing .form-input */
+    padding-right: calc(var(--space-3) * 2 + 24px); /* Space for button */
+    cursor: pointer; /* Indicate it's clickable */
+}
+
+.datepicker-trigger-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-3);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color var(--transition-fast) var(--ease-out);
+}
+.datepicker-trigger-button:hover {
+    color: var(--text-primary);
+}
+.datepicker-trigger-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.datepicker-dropdown {
+    position: absolute;
+    top: calc(100% + var(--space-2)); /* Position below input */
+    left: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: 0 5px 15px var(--shadow);
+    z-index: 1010; /* Above most content, below modals maybe */
+    width: 290px; /* Fixed width */
+    max-width: 100%;
+}
+
+.datepicker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.datepicker-nav-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1);
+    border-radius: var(--radius-full);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color var(--transition-fast) var(--ease-out),
+        color var(--transition-fast) var(--ease-out);
+}
+.datepicker-nav-button:hover {
+    background-color: var(--surface-0);
+    color: var(--text-primary);
+}
+.datepicker-nav-button svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.datepicker-heading {
+    text-align: center;
+    font-weight: 600;
+}
+.datepicker-month-name {
+    color: var(--text-primary);
+}
+.datepicker-year {
+    color: var(--text-secondary);
+    margin-left: var(--space-1);
+}
+
+.datepicker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-1);
+    text-align: center;
+}
+
+.datepicker-days-header {
+    margin-bottom: var(--space-2);
+}
+
+.datepicker-day-heading {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: var(--space-1) 0;
+}
+
+.datepicker-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    height: 32px; /* Fixed height for alignment */
+    width: 32px; /* Fixed width for alignment */
+    margin: 0 auto; /* Center the fixed-width day */
+    border-radius: var(--radius-full);
+    border: 1px solid transparent; /* Placeholder for alignment */
+    transition: background-color var(--transition-fast) var(--ease-out),
+        color var(--transition-fast) var(--ease-out),
+        border-color var(--transition-fast) var(--ease-out);
+}
+
+.datepicker-day-blank {
+    /* Empty cell */
+}
+
+.datepicker-day-selectable {
+    cursor: pointer;
+    color: var(--text-primary);
+}
+.datepicker-day-selectable:hover {
+    background-color: var(--surface-0);
+}
+
+.datepicker-day.today {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+.datepicker-day.today:hover {
+    background-color: rgba(var(--accent-rgb), 0.1);
+}
+
+.datepicker-day.selected {
+    background-color: var(--accent);
+    color: var(--bg-primary); /* High contrast text on accent */
+    border-color: var(--accent);
+    font-weight: 600;
+}
+.datepicker-day.selected:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+}

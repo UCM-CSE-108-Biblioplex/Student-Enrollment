@@ -1,7 +1,29 @@
 {% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    items_per_page=items_per_page,
+    total_items=total_users,
+    base_url="/api/v1/users?page="
+) }}
+
+{# Table component #}
 {{ table("users-table", rows, titles) }}
 
-{% from "macros/modal.html" import modal_shell %}
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    items_per_page=items_per_page,
+    total_items=total_users,
+    base_url="/api/v1/users?page="
+) }}
+
+{# Modal definitions #}
 {% for user in users %}
     {% set trigger_id="user-" ~ user.id ~ "-modal" %}
 

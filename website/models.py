@@ -29,6 +29,26 @@ class Course(db.Model):
     users = db.relationship(
         "User", secondary="roles", back_populates="courses"
     )
+    schedules = db.relationship("Schedule", backref="course")
+
+class Schedule(db.Model):
+    __tablename__ = "schedules"
+    id=db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey("courses.id"))
+    
+    sunday = db.Column(db.Boolean)
+    monday = db.Column(db.Boolean)
+    tuesday = db.Column(db.Boolean)
+    wednesday = db.Column(db.Boolean)
+    thursday = db.Column(db.Boolean)
+    friday = db.Column(db.Boolean)
+    saturday = db.Column(db.Boolean)
+    
+    start_time = db.Column(db.Integer) # in minutes
+    end_time = db.Column(db.Integer)
+
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
 
 class Role(db.Model):
     __tablename__ = "roles_def"

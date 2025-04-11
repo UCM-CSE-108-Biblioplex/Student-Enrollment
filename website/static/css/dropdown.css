@@ -1,0 +1,163 @@
+/* === Dropdown Component === */
+.dropdown-wrapper {
+    position: relative;
+    display: inline-block; /* Or block, depending on context */
+}
+
+/* Trigger styling is determined by the HTML passed to the macro */
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + var(--space-1)); /* Position below trigger */
+    z-index: 1020; /* Below modals, above most content */
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 5px 15px var(--shadow);
+    /* overflow: hidden; Ensures rounded corners clip content */
+    transform-origin: top left; /* Default for transitions */
+}
+.dropdown-menu.right-0 {
+    left: auto;
+    right: 0;
+    transform-origin: top right;
+}
+.dropdown-menu.dropdown-menu-center {
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: top center;
+}
+
+.dropdown-menu-content {
+    padding: var(--space-2); /* Padding inside the menu */
+}
+
+/* --- Menu Items --- */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast) var(--ease-out),
+        color var(--transition-fast) var(--ease-out);
+    white-space: nowrap;
+    text-decoration: none; /* For links */
+}
+.dropdown-item:hover,
+.dropdown-item:focus { /* Basic focus style */
+    background-color: var(--surface-0);
+    color: var(--text-primary);
+    outline: none; /* Or provide a better focus ring */
+}
+.dropdown-item.disabled,
+.dropdown-item[aria-disabled="true"] {
+    color: var(--text-secondary);
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dropdown-item-icon {
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.8;
+}
+.dropdown-item-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.dropdown-item-text {
+    flex-grow: 1;
+}
+
+.dropdown-item-shortcut {
+    margin-left: auto;
+    padding-left: var(--space-4);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+.dropdown-item:hover .dropdown-item-shortcut,
+.dropdown-item:focus .dropdown-item-shortcut {
+    color: var(--text-primary);
+}
+
+/* --- Divider --- */
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--surface-0);
+    margin: var(--space-2) calc(-1 * var(--space-2)); /* Extend to edges */
+}
+
+/* --- Heading --- */
+.dropdown-heading {
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* --- Submenu --- */
+.dropdown-submenu-wrapper {
+    position: relative; /* Context for the submenu panel */
+}
+
+.dropdown-submenu-trigger {
+    /* Inherits .dropdown-item styles */
+    justify-content: space-between; /* Push indicator to the right */
+}
+
+.dropdown-item-submenu-indicator {
+    margin-left: auto;
+    padding-left: var(--space-3);
+    opacity: 0.6;
+}
+.dropdown-item-submenu-indicator svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.dropdown-submenu-panel {
+    position: absolute;
+    top: calc(-1 * var(--space-2)); /* Align top edge with parent item padding */
+    left: 100%;
+    margin-left: var(--space-1);
+    z-index: 1030; /* Above parent menu */
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 5px 15px var(--shadow);
+    min-width: 10rem; /* Example min-width */
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transition: opacity var(--transition-fast) var(--ease-out), 
+        visibility var(--transition-fast) var(--ease-out);
+}
+.dropdown-submenu-panel.right-0 { /* If submenu opens left */
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    margin-right: var(--space-1);
+}
+
+/* Show submenu on hover/focus-within */
+.dropdown-submenu-wrapper:hover > .dropdown-submenu-panel,
+.dropdown-submenu-wrapper:focus-within > .dropdown-submenu-panel {
+    visibility: visible;
+    opacity: 1;
+}

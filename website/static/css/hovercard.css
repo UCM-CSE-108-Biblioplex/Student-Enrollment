@@ -1,0 +1,56 @@
+/* === Hover Card Component === */
+.hovercard-wrapper {
+    position: relative;
+    display: inline-block; /* Adjust as needed */
+}
+
+.hovercard-trigger {
+    /* Styling is determined by the HTML passed to the macro */
+    /* Ensure it's not position: static if panel positioning relies on it */
+    display: inline-block; /* Or block */
+}
+
+.hovercard-panel {
+    position: absolute;
+    z-index: 1040; /* High z-index */
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 5px 15px var(--shadow);
+    overflow: hidden; /* Clip content if needed */
+    /* Default width, override with classes */
+    width: 20rem; /* Corresponds to w-80 */
+}
+
+/* Positioning classes */
+.hovercard-panel.hovercard-bottom-center {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: var(--space-2);
+    transform-origin: top center;
+}
+.hovercard-panel.hovercard-top-center {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: var(--space-2);
+    transform-origin: bottom center;
+}
+.hovercard-panel.hovercard-bottom-left {
+    top: 100%;
+    left: 0;
+    margin-top: var(--space-2);
+    transform-origin: top left;
+}
+.hovercard-panel.hovercard-bottom-right {
+    top: 100%;
+    right: 0;
+    margin-top: var(--space-2);
+    transform-origin: top right;
+}
+/* Add top-left, top-right, left-center, right-center as needed */
+
+.hovercard-content {
+    padding: var(--space-4); /* Inner padding for the content */
+}

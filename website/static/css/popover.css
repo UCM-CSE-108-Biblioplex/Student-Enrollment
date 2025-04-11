@@ -1,0 +1,103 @@
+/* === Popover Component === */
+.popover-wrapper {
+    position: relative;
+    display: inline-block; /* Or block */
+}
+
+.popover-trigger {
+    /* Styling determined by trigger_html */
+    cursor: pointer; /* Indicate interactivity */
+    display: inline-block; /* Or block */
+}
+
+.popover-panel {
+    position: absolute;
+    left: 50%; /* Centered by default */
+    transform: translateX(-50%);
+    z-index: 1030; /* Below modals, above dropdowns */
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 5px 15px var(--shadow);
+    overflow: visible; /* Allow arrow to overflow */
+    /* Default width, override with classes */
+    width: 20rem; /* Corresponds to w-80 */
+}
+
+/* Positioning */
+.popover-panel.popover-position-bottom {
+    top: 100%;
+    transform-origin: top center;
+}
+.popover-panel.popover-position-top {
+    bottom: 100%;
+    transform-origin: bottom center;
+}
+
+/* Arrow Styling */
+.popover-arrow-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px; /* Arrow base width */
+    height: 6px; /* Arrow height */
+    overflow: hidden;
+}
+.popover-arrow-container.popover-arrow-bottom {
+    top: 0;
+    margin-top: -6px; /* Pull arrow outside panel */
+}
+.popover-arrow-container.popover-arrow-top {
+    bottom: 0;
+    margin-bottom: -6px; /* Pull arrow outside panel */
+}
+
+.popover-arrow {
+    position: absolute;
+    width: 10px; /* Size of the square */
+    height: 10px;
+    background-color: var(--bg-secondary); /* Match panel background */
+    border: 1px solid var(--surface-0); /* Match panel border */
+    transform: rotate(45deg);
+    left: 1px; /* Center the 10px square within the 12px container */
+}
+.popover-arrow-container.popover-arrow-bottom .popover-arrow {
+    top: -6px; /* Position rotated square correctly */
+    border-top-color: transparent;
+    border-left-color: transparent;
+}
+.popover-arrow-container.popover-arrow-top .popover-arrow {
+    bottom: -6px; /* Position rotated square correctly */
+    border-bottom-color: transparent;
+    border-right-color: transparent;
+}
+
+.popover-content {
+    padding: var(--space-4);
+    color: var(--text-primary);
+}
+.popover-content h4 { /* Example styling */
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+}
+.popover-content p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-3);
+}
+.popover-content p:last-child {
+        margin-bottom: 0;
+}
+.popover-content .form-group { /* Adjust form elements inside */
+        margin-bottom: var(--space-3);
+}
+.popover-content .form-label {
+        font-size: 0.875rem;
+        margin-bottom: var(--space-1);
+}
+.popover-content .form-input {
+        font-size: 0.875rem;
+        padding: var(--space-2);
+        /* Use a slightly different background inside popovers? */
+        /* background-color: var(--bg-primary); */ 
+}
