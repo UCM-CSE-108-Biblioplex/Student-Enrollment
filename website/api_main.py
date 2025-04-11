@@ -203,10 +203,10 @@ def delete_user(request):
     return(target_user)    
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
-# @requires_authentication
+@requires_authentication
 def users():
-    # if(not g.user.is_admin): # placeholder for now
-    #     abort(Response("Insufficient permissions.", 403))
+    if(not g.user.is_admin): # placeholder for now
+        abort(Response("Insufficient permissions.", 403))
     
     if(request.method == "GET"):
         users, current_page, total_pages, total_users, per_page = get_users(request)
