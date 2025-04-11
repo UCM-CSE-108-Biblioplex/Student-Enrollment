@@ -1,59 +1,48 @@
 /* === Modal Component === */
 .modal-container {
     position: fixed;
-    inset: 0; /* Cover screen */
-    z-index: 1050; /* High z-index */
-    display: flex;
+    inset: 0;
+    z-index: 1050;
+    display: none; /* Hidden by default */
     align-items: center;
     justify-content: center;
-    padding: var(--space-4); /* Padding around modal panel */
-    overflow-y: auto; /* Allow scrolling if content overflows viewport */
+    padding: var(--space-4);
+    overflow-y: auto;
+}
+.modal-container.modal-visible {
+    display: flex; /* Show when visible */
 }
 
 .modal-overlay {
-    position: fixed; /* Use fixed to ensure it covers viewport */
+    position: fixed;
     inset: 0;
-    transition-property: opacity;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
-.modal-overlay-dark {
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-}
-.modal-overlay-light {
-    background-color: rgba(var(--bg-primary-rgb), 0.7); /* Use theme background */
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-.modal-overlay-blur {
-    background-color: rgba(var(--bg-secondary-rgb), 0.5); /* Darker base for blur */
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+.modal-overlay.modal-visible {
+    opacity: 1;
 }
 
 .modal-panel {
-    position: relative; /* For absolute positioning of close button */
+    position: relative;
     display: flex;
     flex-direction: column;
-    width: 100%; /* Full width on small screens */
-    max-height: calc(100vh - (var(--space-4) * 2)); /* Limit height */
+    width: 100%;
+    max-height: calc(100vh - (var(--space-4) * 2));
     background-color: var(--bg-primary);
     border-radius: var(--radius-lg);
     box-shadow: 0 10px 25px var(--shadow);
-    transition-property: opacity, transform;
-    overflow: hidden; /* Clip content within rounded corners */
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    overflow: hidden;
 }
 
-/* Panel Styles */
-.modal-panel-simple {
-    /* Base styles are sufficient */
-}
-.modal-panel-bordered {
-    border: 1px solid var(--surface-0);
-}
-.modal-panel-frosted {
-    background-color: rgba(var(--bg-primary-rgb), 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(var(--surface-0-rgb), 0.5);
+.modal-panel.modal-visible {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Panel Sizes */

@@ -9,32 +9,24 @@
         {{ trigger_html | safe }}
     </div>
 
-    {# Modal Structure (No teleport) #}
-    <div x-show="open" 
+    {# Modal Structure #}
+    <div 
          class="modal-container" 
          id="{{ id }}-container" 
+         :class="{ 'modal-visible': open }"
          x-cloak>
         
         {# Overlay #}
-        <div x-show="open"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
+        <div
              @click="open = false" 
-             class="modal-overlay modal-overlay-{{ overlay_style }}"></div>
+             class="modal-overlay modal-overlay-{{ overlay_style }}"
+             :class="{ 'modal-visible': open }">
+        </div>
 
         {# Panel #}
-        <div x-show="open"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 transform scale-95"
-             x-transition:enter-end="opacity-100 transform scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 transform scale-100"
-             x-transition:leave-end="opacity-0 transform scale-95"
+        <div
              class="modal-panel modal-panel-{{ panel_style }} modal-size-{{ size }}"
+             :class="{ 'modal-visible': open }"
              role="dialog" 
              aria-modal="true" 
              aria-labelledby="{{ id }}-title">

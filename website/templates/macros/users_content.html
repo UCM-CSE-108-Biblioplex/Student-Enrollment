@@ -71,10 +71,9 @@
                 id="user-{{ user.id }}-is-admin" 
                 class="toggle-switch-input" 
                 x-model="isOn"
-                :value="isOn ? 'true' : 'false'"
+                :value="isOn"
                 tabindex="-1"
                 aria-hidden="true">
-        
             <button 
                 type="button" 
                 @click="isOn = !isOn; $refs.input.focus()"
@@ -94,7 +93,8 @@
                 :class="{ 'on': isOn }">
                 Administrator
             </label>
-        </div>        
+        </div>
+              
     </form>
     {% endset %}
 
