@@ -137,8 +137,8 @@ def edit_user(request):
         data = request.form
     else:
         data = request.get_json()
-    if(data is None):
-        abort(Response("No request JSON.", 400))
+    if(not data):
+        abort(Response("No request body.", 400))
     
     # get user
     user_id = data.get("user_id", None)
@@ -200,15 +200,218 @@ def delete_user(request):
     if(not target_user):
         abort(Response("User not found", 404))
     
-    return(target_user)    
+    return(target_user)
+
+def get_courses(request):
+    try:
+        page = request.args.get("page", 1)
+        page = int(page)
+    except:
+        page = 1
+    try:
+        per_page = request.args.get("per_page", 50)
+        per_page = int(per_page)
+    except:
+        per_page = 50
+
+    # what kind of search are we doing?
+    query = request.args.get("query", "name")
+    if(query not in ["name", "id", "dept"]):
+        query = "name"
+    # specific term?
+    term = request.args.get("term", None)
+    
+    courses = Course.query
+    if(term):
+        courses = courses.filter_by(term=term)
+
+    # fuzzy search by name
+    if(query == "name"):
+        course_name = request.args.get("name", "")
+        if(course_name):
+            courses = courses.filter(Course.name.like(f"%{course_name}%"))
+    # search by ID
+    elif(query == "id"):
+        course_id = request.args.get("id", None)
+        try:
+            course_id = int(course_id)
+        except:
+            abort(Response("Invalid course number.", 400))
+        if(not course_id):
+            abort(Response("ID is required.", 400))
+        courses = courses.filter_by(id=course_id)
+    # search by course department and number
+    else:
+        course_dept = request.args.get("dept", None)
+        course_num = request.args.get("num", None)
+        min_number = request.args.get("min", None)
+        max_number = request.args.get("max", None)
+        if(course_dept):
+            courses = courses.filter_by(course_dept=course_dept)
+        if(course_num is not None):
+            courses = courses.filter_by(number=course_num)
+        if(min_number):
+            courses = courses.filter(Course.number >= min_number)
+        if(max_number):
+            courses = courses.filter(Course.number <= max_number)
+        
+    # paginate
+    pagination = courses.paginate(page=page, per_page=per_page)
+    courses = pagination.items
+    total_pages = pagination.pages
+    total_courses = pagination.total
+
+    # return
+    return(courses, page, total_pages, total_courses, per_page)
+
+def create_course(request):
+    data = request.get_json()
+    if(data is None):
+        abort(Response("No request body.", 400))
+
+    course_term = data.get("term", "")
+    if(not course_term):
+        abort(Response("Course term is required.", 400))
+    course_name = data.get("name", "")
+    if(not course_name):
+        abort(Response("Course name is required.", 400))
+    course_dept = data.get("dept", "")
+    if(not course_dept):
+        abort(Response("Course department is required.", 400))
+    number = data.get("number", "")
+    if(not number):
+        abort(Response("Course number is required.", 400))
+    session = data.get("session", "")
+    if(not session):
+        abort(Response("Course session is required.", 400))
+    units = data.get("units", 0)
+    try:
+        units = int(units)
+    except:
+        abort(Response("Invalid course units.", 400))
+    
+    new_course = Course(
+        term=course_term,
+        name=course_name,
+        dept=course_dept,
+        number=number,
+        session=session,
+        units=units
+    )
+    return(new_course)
+
+def edit_course(request):
+    content_type = request.headers.get("Content-Type")
+    if(content_type == "application/x-www-form-urlencoded"):
+        fata = request.form
+    else:
+        data = request.get_json()
+    
+    if(not data):
+        abort(Response("No request body.", 400))
+    
+    course_id = data.get("course_id", None)
+    if(not course_id):
+        abort(Response("Course ID is required.", 400))
+    target_course = Course.query.get(course_id)
+    if(not target_course):
+        abort(Response("Course not found.", 404))
+    
+    term = data.get("term", None)
+    if(term):
+        target_course.term = term[:7]
+    name = data.get("name", None)
+    if(name):
+        target_course.name = name[:255]
+    dept = data.get("dept", None)
+    if(dept):
+        target_course.dept = dept[:7]
+    number = data.get("number", None)
+    if(number):
+        target_course.number = number[:7]
+    session = data.get("session", None)
+    if(session):
+        target_course.session = session[:7]
+    units = data.get("units", None)
+    if(units):
+        try:
+            target_course.units = int(units)
+        except:
+            abort(Response("Invalid course units.", 400))
+    
+    user_ids = data.get("user_ids", [])
+    if(type(user_ids) != list and user_ids is not None):
+        abort(Response("Invalid course user_ids", 400))
+    if(user_ids):
+        for user in target_course.users:
+            if(user.id not in user_ids):
+                target_course.users.remove(user)
+        users = [User.query.get(user_id) for user_id in user_ids]
+        for user in users:
+            if(user not in target_course.users and user is not None):
+                target_courses.users.append(user)
+    
+    # string of form 'DEPT-NUM'
+    corequisites = data.get("corequisites", [])
+    if(type(corequisite_ids) != list and corequisites is not None):
+        abort(Response("Invalid course corequisites", 400))
+    if(corequisites):
+        try:
+            # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
+            corequisites = [{"dept": split[0], "number": spit[1]} for split in [coreq.split("-") for coreq in corequisites]]
+        except:
+            abort(Response())
+        course_corequisites = [coreq.to_dict() for coreq in target_course.corequisites]
+        for corequisite in corequisites:
+            if(type(corequisite) != dict):
+                abort(Response("Invalid course corequisites", 400))
+            if(corequesitie in course_corequisites):
+                continue
+            new_corequisite = CourseCorequisite(
+                course=target_course,
+                dept=corequisite["dept"],
+                number=corequisite["number"]
+            )
+            db.session.add(new_corequisite)
+        for corequisite in target_course.corequisites:
+            if(corequisite.to_dict() not in corequisites):
+                target_course.corequisites.remove(corequisite)
+
+    prerequisites = data.get("prerequisites", [])
+    if(type(prerequisite_ids) != list and prerequisites is not None):
+        abort(Response("Invalid course prerequisites", 400))
+    if(prerequisites):
+        try:
+            # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
+            prerequisites = [{"dept": split[0], "number": spit[1]} for split in [prereq.split("-") for prereq in prerequisites]]
+        except:
+            abort(Response())
+        course_prerequisites = [prereq.to_dict() for prereq in target_course.prerequisites]
+        for prerequisite in prerequisites:
+            if(type(prerequisite) != dict):
+                abort(Response("Invalid course prerequisites", 400))
+            if(prerequesitie in course_prerequisites):
+                continue
+            new_prerequisite = Courseprerequisite(
+                course=target_course,
+                dept=prerequisite["dept"],
+                number=prerequisite["number"]
+            )
+            db.session.add(new_prerequisite)
+        for prerequisite in target_course.prerequisites:
+            if(prerequisite.to_dict() not in prerequisites):
+                target_course.prerequisites.remove(prerequisite)
+    
+    # I'll do schedules later
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
 def users():
-    if(not g.user.is_admin): # placeholder for now
-        abort(Response("Insufficient permissions.", 403))
-    
     if(request.method == "GET"):
+        # if you're not admin, you can only GET yourself
+        if(not g.user.is_admin):
+            return(jsonify(g.user.to_dict()))
+
         users, current_page, total_pages, total_users, per_page = get_users(request)
         
         # Check if the client wants HTML or JSON
@@ -249,10 +452,20 @@ def users():
             )
         else:
             # Return JSON for API requests
-            return jsonify([user.to_dict() for user in users])
+            response = {
+                "users": [user.to_dict() for user in users],
+                "total_pages": total_pages,
+                "total_users": total_users
+            }
+            return jsonify(response)
     
     # create new user
     if(request.method == "POST"):
+        # only admins can create users via api
+        # anyone can sign up, though
+        if(not g.user.is_admin):
+            abort(Response("Insufficient permissions.", 403))
+
         new_user = create_user(request)
         try:
             db.session.add(new_user)
@@ -265,6 +478,12 @@ def users():
     # edit user
     if(request.method == "PUT"):
         target_user = edit_user(request)
+
+        # you can't edit someone else unless you're admin
+        if(not g.user.is_admin and g.user.id != target_user.id):
+            db.session.rollback()
+            abort(Response("Insufficient permissions.", 403))
+        
         try:
             db.session.add(target_user)
             db.session.commit()
@@ -319,6 +538,11 @@ def users():
     # delete user
     if(request.method == "DELETE"):
         target_user = delete_user(request)
+
+        # only admins can delete users via api
+        if(not g.user.is_admin):
+            abort(Response("Insufficient permissions.", 403))
+
         try:
             db.session.delete(target_user)
             db.session.commit()
@@ -326,6 +550,55 @@ def users():
         except Exception as e:
             db.session.rollback()
             abort(Response(f"A database error occurred: {str(e)}", 500))
+
+@api_main.route("/courses", methods=["GET", "PUT", "POST", "DELETE"])
+@requires_authentication
+def courses():
+    if(request.method == "GET"):
+        courses, current_page, total_pages, total_courses, per_page = get_courses(request)
+
+        accept_header = request.headers.get("Accept", "")
+        if("text/html" in accept_header):
+            return("uuuh")
+        
+        else:
+            response = {
+                "courses": [course.to_dict() for course in courses],
+                "total_pages": total_pages,
+                "total_courses": total_courses,
+            }
+            return(jsonify(response))
+    
+    if(request.method == "POST"):
+        if(not g.user.is_admin):
+            abort(Response("Insufficient permissions.", 403))
+        new_course = create_course(request)
+        try:
+            db.session.add(new_course)
+            db.session.commit()
+            return(jsonify(new_course.to_dict()))
+        except Exception as e:
+            db.session.rollback()
+            abort(Response(f"A database error occured: {str(e)}", 500))
+    
+    if(request.method == "PUT"):
+        if(not g.user.is_admin):
+            abort(Response("Insufficient permissions.", 403))
+        
+        target_course = edit_course(request)
+        try:
+            db.session.add(new_course)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            abort(Response(f"A database error occured: {str(e)}", 500))
+        
+        accept_header = request.headers.get("Accept", "")
+        if("text/html" in accept_header):
+            # code for HTMX SSR goes here
+            pass
+        else:
+            return(jsonify(target_course.to_dict()))
 
 @api_main.route("/username")
 def username():

@@ -1,0 +1,15 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/admin_courses.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">Course Administration</h1>
+    
+    <div id="courses-content">
+        {% include "macros/users_content.html" %}
+    </div>
+</div>
+{% endblock %}

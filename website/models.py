@@ -20,16 +20,61 @@ class User(db.Model, UserMixin):
     def to_dict(self):
         return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
 
+class APIKey(db.Model):
+    __tablename__ = "keys"
+    id = db.Column(db.Integer, primary_key=True)
+    userid = db.Column(db.Integer, db.ForeignKey("users.id"))
+    is_admin = db.Column(db.Boolean, default=False)
+    key = db.Column(db.String(255), nullable=False)
+    expiry = db.Column(db.Integer, nullable=False)
+
 class Course(db.Model):
     __tablename__ = "courses"
     id = db.Column(db.Integer, primary_key=True)
+    term = db.Column(db.String(7), nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    dept = db.Column(db.String(10), nullable=False)
-    number = db.Column(db.Integer, nullable=False)
+    dept = db.Column(db.String(7), nullable=False)
+    number = db.Column(db.String(7), nullable=False)
+    session = db.Column(db.String(7), nullable=False)
+    units = db.Column(db.Integer, nullable=False)
+
     users = db.relationship(
         "User", secondary="roles", back_populates="courses"
     )
+
     schedules = db.relationship("Schedule", backref="course")
+
+    prerequisites = db.relationship("CoursePrerequisite", backref="course")
+    corequisites = db.relationship("CourseCorequisite", backref="course")
+
+    def to_dict(self):
+        return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
+
+class CoursePrerequisite(db.Model):
+    __tablename__ = "prerequisites"
+    id = db.Column(db.Integer, primary_key=True)
+    courseid = db.Column(db.Integer, db.ForeignKey("courses.id"))
+    dept = db.Column(db.String(7), nullable=False)
+    number = db.Column(db.String(7), nullable=False)
+
+    def to_dict(self):
+        return({"dept": self.dept, "number": self.number})
+
+class CourseCorequisite(db.Model):
+    __tablename__ = "corequisites"
+    id = db.Column(db.Integer, primary_key=True)
+    courseid = db.Column(db.Integer, db.ForeignKey("courses.id"))
+    dept = db.Column(db.String(7), nullable=False)
+    number = db.Column(db.String(7), nullable=False)
+
+    def to_dict(self):
+        return({"dept": self.dept, "number": self.number})
+
+class Department(db.Model):
+    __tablename__ = "departments"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    abbreviation = db.Column(db.String(7))
 
 class Schedule(db.Model):
     __tablename__ = "schedules"
@@ -62,11 +107,3 @@ roles = db.Table(
     db.Column("course_id", db.Integer, db.ForeignKey("courses.id"), primary_key=True),
     db.Column("role_id", db.Integer, db.ForeignKey("roles_def.id"))
 )
-
-class APIKey(db.Model):
-    __tablename__ = "keys"
-    id = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, db.ForeignKey("users.id"))
-    is_admin = db.Column(db.Boolean, default=False)
-    key = db.Column(db.String(255), nullable=False)
-    expiry = db.Column(db.Integer, nullable=False)

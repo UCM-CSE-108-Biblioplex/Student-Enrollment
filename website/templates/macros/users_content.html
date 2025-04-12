@@ -104,7 +104,6 @@
         class="btn btn-primary" 
         hx-put="{{ url_for('api_main.users') }}" 
         hx-include="#user-{{ user.id }}-form" 
-        hx-encoding="application/json" 
         hx-headers='{"Accept": "text/html"}'
         hx-target="#users-content"
         hx-swap="innerHTML"

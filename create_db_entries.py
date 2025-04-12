@@ -21,6 +21,8 @@ def create_last_name():
 def create_password(length: str = 16):
     return "".join(random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_") for i in range(length))
 
+terms = ["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", ""]
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-n", "--number",
@@ -31,7 +33,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-def create_db_entry(first_name, middle_name, last_name):
+def create_user_entry(first_name, middle_name, last_name):
     payload = {
         "is_admin": False,
         "first_name": first_name,
@@ -47,14 +49,20 @@ def create_db_entry(first_name, middle_name, last_name):
     try:
         response = requests.post("http://localhost:5000/api/v1/users", data=json.dumps(payload), headers=headers)
         response.raise_for_status()
-        print("f")
     except Exception as e:
         print(e)
+    print(f"Created entry for {first_name} {last_name}")
+
+def create_course_entry(term, name, dept, number):
+    payload = {
+        "term": term,
+
+    }
 
 if(__name__ == "__main__"):
     number = int(args.number)
     for i in range(number):
-        create_db_entry(
+        create_user_entry(
             random.choice(first_names),
             random.choice(first_names) if random.choice([True, False]) else "",
             create_last_name()
