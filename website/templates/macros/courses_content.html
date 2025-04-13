@@ -82,7 +82,7 @@
     <button class="btn" @click="open = false">Close</button>
     <button
         class="btn btn-primary"
-        hx-post="{{ url_for('api_main.courses') }}"
+        hx-put="{{ url_for('api_main.courses') }}"
         hx-include="#course-{{ course.id }}-form"
         hx-headers='{"Accept": "text/html"}'
         hx-target="#courses-content"

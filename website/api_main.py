@@ -656,14 +656,14 @@ def courses():
                     action_button
                 ])
             return(render_template(
-                "admin_courses.html",
+                "macros/courses_content.html",
                 courses=courses,
                 rows=rows,
                 titles=titles,
-                current_page=page,
+                current_page=current_page,
                 total_pages=total_pages,
                 total_courses=total_courses,
-                items_per_page=per_page,
+                items_per_page=50,
                 depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
                 terms=["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", "F12", "S13", "Su13", "F13", "S14", "Su14", "F14", "S15", "Su15", "F15", "S16", "Su16", "F16", "S17", "Su17", "F17", "S18", "Su18", "F18", "S19", "Su19", "F19", "S20", "Su20", "F20", "S21", "Su21", "F21", "S22", "Su22", "F22", "S23", "Su23", "F23", "S24", "Su24", "F24", "S25", "Su25", "F25"]
             ))
@@ -704,14 +704,14 @@ def courses():
                     action_button
                 ])
             return(render_template(
-                "admin_courses.html",
+                "macros/.html",
                 courses=courses,
                 rows=rows,
                 titles=titles,
-                current_page=page,
+                current_page=current_page,
                 total_pages=total_pages,
                 total_courses=total_courses,
-                items_per_page=per_page,
+                items_per_page=50,
                 depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
                 terms=["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", "F12", "S13", "Su13", "F13", "S14", "Su14", "F14", "S15", "Su15", "F15", "S16", "Su16", "F16", "S17", "Su17", "F17", "S18", "Su18", "F18", "S19", "Su19", "F19", "S20", "Su20", "F20", "S21", "Su21", "F21", "S22", "Su22", "F22", "S23", "Su23", "F23", "S24", "Su24", "F24", "S25", "Su25", "F25"]
             ))
