@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash as gph
 from werkzeug.security import check_password_hash as cph
-from flask import Blueprint, render_template, request, jsonify, abort, Response
+from flask import Blueprint, render_template, request, abort, Response, flash, redirect, url_for
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
@@ -125,7 +125,7 @@ def users():
 
     rows = []
     for user in users:
-        action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
+        action_button = f"""<button class="btn btn-primary" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
         rows.append([
             user.id,
             user.username,
@@ -155,10 +155,23 @@ def courses():
         return(Redirect(url_for("site_main.home")))
     
     courses, page, total_pages, total_courses, per_page = get_courses(request)
+    rows = []
+    for course in courses:
+        action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
+        rows.append([
+            course.id,
+            course.name,
+            course.dept,
+            course.number,
+            course.session,
+            course.units,
+            action_button
+        ])
+    titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
 
     return(render_template(
         "admin_courses.html",
-        users=users,
+        courses=courses,
         rows=rows,
         titles=titles,
         current_page=page,

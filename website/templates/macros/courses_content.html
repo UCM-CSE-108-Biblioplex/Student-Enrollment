@@ -7,20 +7,20 @@
     current_page=current_page,
     total_pages=total_pages,
     items_per_page=items_per_page,
-    total_items=total_users,
-    base_url="/api/v1/users?page="
+    total_items=total_courses,
+    base_url="/api/v1/courses?page="
 ) }}
 
 {# Table component #}
-{{ table("users-table", rows, titles) }}
+{{ table("courses-table", rows, titles) }}
 
 {# Pagination component #}
 {{ pagination(
     current_page=current_page,
     total_pages=total_pages,
     items_per_page=items_per_page,
-    total_items=total_users,
-    base_url="/api/v1/users?page="
+    total_items=total_courses,
+    base_url="/api/v1/courses?page="
 ) }}
 
 {# Modal definitions #}

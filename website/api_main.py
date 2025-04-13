@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash as cph
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, APIKey
+from .models import User, APIKey, CourseCorequisite, Course
 from . import db
 import re
 
@@ -98,10 +98,9 @@ def create_user(request):
         abort(Response("No request JSON", 400))
     
     is_admin = data.get("is_admin", False)
+    print(is_admin)
     if(is_admin is not None):
-        if isinstance(is_admin, str):
-            is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
-        is_admin = is_admin
+        is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
 
     first_name = data.get("first_name", None)
     if(not first_name):
@@ -179,7 +178,7 @@ def edit_user(request):
     
     is_admin = data.get("is_admin")
     if is_admin is not None:
-        target_user.is_admin = is_admin
+        target_user.is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
     
     password = data.get("password", None)
     if(password):
@@ -349,11 +348,11 @@ def edit_course(request):
         users = [User.query.get(user_id) for user_id in user_ids]
         for user in users:
             if(user not in target_course.users and user is not None):
-                target_courses.users.append(user)
+                target_course.users.append(user)
     
     # string of form 'DEPT-NUM'
     corequisites = data.get("corequisites", [])
-    if(type(corequisite_ids) != list and corequisites is not None):
+    if(type(corequisites) != list and corequisites is not None):
         abort(Response("Invalid course corequisites", 400))
     if(corequisites):
         try:
@@ -378,7 +377,7 @@ def edit_course(request):
                 target_course.corequisites.remove(corequisite)
 
     prerequisites = data.get("prerequisites", [])
-    if(type(prerequisite_ids) != list and prerequisites is not None):
+    if(type(prerequisites) != list and prerequisites is not None):
         abort(Response("Invalid course prerequisites", 400))
     if(prerequisites):
         try:
@@ -392,7 +391,7 @@ def edit_course(request):
                 abort(Response("Invalid course prerequisites", 400))
             if(prerequesitie in course_prerequisites):
                 continue
-            new_prerequisite = Courseprerequisite(
+            new_prerequisite = CoursePrerequisite(
                 course=target_course,
                 dept=prerequisite["dept"],
                 number=prerequisite["number"]
