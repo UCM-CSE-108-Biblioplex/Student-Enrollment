@@ -47,11 +47,8 @@ def catalog():
 @site_enrollment.route("/course_catalog/<string:term>")
 def catalog_term(term):
     courses_cat = Course.query.filter_by(semester=term).all()
-
     titles = ["Course Name", "Department", "Number", "Semester"]
     rows = [[c.name, c.dept, c.number, c.semester] for c in courses_cat]
-
-
     # returns a list of courses offered
     #   - includes course name, ID, CRN, etc.
     #   - includes instructorm TAs

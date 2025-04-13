@@ -7,20 +7,38 @@
 {% block body %}
 <div class="container mt-10">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold"></h2>
+        <h2 class="mt-8 fw-bold">Enter Your Search Criteria</h2>
+        <h5 class ="mb-4">Term: {{ term|title }}</h5>
     </div>
 
-    <div class="table-container card shadow p-4 rounded bg-white border-0">
-        <table class ="table table-responsive">
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Course ID</th>
-                    <th>Title</th>
     
-                </tr>
-            </thead>
-        </table>
-    </div>
-</div>
+
+
+
 {% endblock %}
+
+
+<!-- <div class="table-container">
+        
+    <table class ="table table-responsive">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Course ID</th>
+                <th>Title</th>
+
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td>{{ course.dept }}</td>
+                <td>{{ course.number }}</td>
+                <td>{{ course.name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div> -->

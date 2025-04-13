@@ -701,6 +701,8 @@ html.dark-theme .password-strength-bar.very-strong {
 .mb-4 { margin-bottom: var(--space-4); }
 .mb-8 { margin-bottom: var(--space-8); }
 
+.ml-8 { margin-left: var(--space-8); }
+
 .mx-auto { margin-left: auto; margin-right: auto; }
 
 .w-auto { width: auto; }
@@ -867,4 +869,37 @@ html.dark-theme .password-strength-bar.very-strong {
 }
 .radiogroup-item.disabled .radiogroup-input::before {
     background-color: var(--overlay);
+}
+
+.slider-container {
+  position: relative;
+  overflow: visible; 
+  height: 300px;     
+  margin-top: var(--space-8);
+  margin-bottom: -2rem;
+}
+
+.card-slider {
+  position: absolute;
+  left: calc(48.5% - 110px);
+  top: 0;
+  transition: 0.5s;
+  text-align: justify;
+}
+
+#next, #prev{
+    position: absolute; 
+    margin-top: -245px;
+    color: white; 
+    background-color: transparent;
+    border: none; 
+    font-size: xx-large; 
+    font-family: inherit;
+    font-weight: bold; 
+    left:250px; 
+}
+
+#next{
+  left: unset; 
+  right: 210px; 
 }
