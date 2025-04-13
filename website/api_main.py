@@ -639,7 +639,7 @@ def courses():
             current_page = new_course.id // 5 + 1
             pagination = Course.query.paginate(page=current_page, per_page=50)
             courses= pagination.items
-            titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+            titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
             total_pages = pagination.pages
             total_courses = pagination.total
             rows = []
@@ -648,6 +648,7 @@ def courses():
                 action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
                 rows.append([
                     course.id,
+                    course.term,
                     course.name,
                     course.dept,
                     course.number,
@@ -687,7 +688,7 @@ def courses():
             current_page = target_course.id // 5 + 1
             pagination = Course.query.paginate(page=current_page, per_page=50)
             courses= pagination.items
-            titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+            titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
             total_pages = pagination.pages
             total_courses = pagination.total
             rows = []
@@ -696,6 +697,7 @@ def courses():
                 action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
                 rows.append([
                     course.id,
+                    course.term,
                     course.name,
                     course.dept,
                     course.number,

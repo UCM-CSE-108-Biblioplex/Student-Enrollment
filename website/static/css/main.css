@@ -382,6 +382,17 @@ a.topnav-link:hover, div.topnav-dropdown:hover button.topnav-dropbtn {
 .btn-primary:hover {
     background-color: var(--accent-hover);
 }
+.btn-danger {
+    background-color: var(--latte-red);
+}
+html.dark-theme .btn-danger {
+    background-color: var(--mocha-red);
+}
+@media (prefers-color-scheme: dark) {
+    .btn-danger {
+        background-color: var(--mocha-red);
+    }
+}
 
 /* === Form elements === */
 .form-group {

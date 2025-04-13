@@ -160,6 +160,7 @@ def courses():
         action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
         rows.append([
             course.id,
+            course.term,
             course.name,
             course.dept,
             course.number,
@@ -167,7 +168,7 @@ def courses():
             course.units,
             action_button
         ])
-    titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
 
     return(render_template(
         "admin_courses.html",
