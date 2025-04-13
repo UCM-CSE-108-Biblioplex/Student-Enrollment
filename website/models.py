@@ -10,7 +10,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255))
     password = db.Column(db.String(255), nullable=False, info={"min_length": 4})
     api_keys = db.relationship("APIKey", backref="user")
-    courses = db.relationship("Course", secondary="roles", back_populates="users")
+    courses = db.relationship("Course", secondary="roles_table", back_populates="users")
 
 class Course(db.Model):
     __tablename__ = "courses"
@@ -18,8 +18,9 @@ class Course(db.Model):
     name = db.Column(db.String(255), nullable=False)
     dept = db.Column(db.String(10), nullable=False)
     number = db.Column(db.Integer, nullable=False)
+    semester = db.Column(db.String(20), nullable=False)
     users = db.relationship(
-        "User", secondary="roles", back_populates="courses"
+        "User", secondary="roles_table", back_populates="courses"
     )
 
 class Role(db.Model):

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required
+from .models import Course
 
 site_enrollment = Blueprint("site_enrollment", __name__)
 
@@ -45,13 +46,14 @@ def catalog():
 
 @site_enrollment.route("/course_catalog/<string:term>")
 def catalog_term(term):
+    courses_cat = Course.query.filter_by(semester=term).all()
     # returns a list of courses offered
     #   - includes course name, ID, CRN, etc.
     #   - includes instructorm TAs
     #   - includes Dates/Times of classes, exams
     #       - hovercard w/ calendar element would be neat
     #   - includes level of enrollment, waitlist availability
-     return (render_template("courses.html", term=term))
+    return (render_template("courses.html", term=term, courses=courses_cat))
 
 @site_enrollment.route("/Enroll")
 @login_required

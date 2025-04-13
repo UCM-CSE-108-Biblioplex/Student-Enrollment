@@ -1,4 +1,13 @@
 {% extends "master.html" %}
 {% block body %}
- 
+<div class="container">
+    <h2 class="mb-4 mt-8">Course Catalog for {{ term|title }}</h2>
+    <ul class="list-group">
+        {% for course in courses %}
+        <li class="list-group-item">
+            <strong>{{ course.dept }} {{ course.number }}</strong>: {{ course.name }}
+        </li>
+        {% endfor %}
+  </ul>
+</div>
 {% endblock %}
