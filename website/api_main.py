@@ -303,7 +303,7 @@ def create_course(request):
 def edit_course(request):
     content_type = request.headers.get("Content-Type")
     if(content_type == "application/x-www-form-urlencoded"):
-        fata = request.form
+        data = request.form
     else:
         data = request.get_json()
     
@@ -358,7 +358,7 @@ def edit_course(request):
     if(corequisites):
         try:
             # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
-            corequisites = [{"dept": split[0], "number": spit[1]} for split in [coreq.split("-") for coreq in corequisites]]
+            corequisites = [{"dept": split[0], "number": split[1]} for split in [coreq.split("-") for coreq in corequisites]]
         except:
             abort(Response())
         course_corequisites = [coreq.to_dict() for coreq in target_course.corequisites]
