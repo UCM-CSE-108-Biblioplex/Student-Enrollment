@@ -53,9 +53,12 @@ def catalog():
 #   - includes level of enrollment, waitlist availability
 @site_enrollment.route("/course_catalog/<string:term>", methods = ['POST', 'GET'])
 def catalog_term(term):
-    subjectData = request.form.get("subject")
-    courseID = request.form.get("course")
+
+    subjectData = (request.form.get("subject") or request.args.get("subject") or "").strip()
+    courseID = (request.form.get("course") or request.args.get("course") or "").strip()
+
     query = Course.query.filter_by(semester=term)
+    
 
     if subjectData and not courseID:
         query = query.filter(Course.dept.ilike(f"%{subjectData}%"))
@@ -75,7 +78,7 @@ def catalog_term(term):
 
     titles = ["Course Name", "Department", "Number"]
     rows = [[c.name, c.dept, c.number] for c in paginated_courses]
-    show_results = bool(subjectData or courseID)
+    show_results = bool(subjectData or courseID or request.args.get("page"))
 
     total_pages = (total_items + items_per_page - 1) // items_per_page
 

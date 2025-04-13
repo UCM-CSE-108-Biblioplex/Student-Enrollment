@@ -4,16 +4,20 @@
 <div id="courses-content">
   {{ table("courses-table", rows, titles, variant="striped", responsive=true) }}
 
+  <a href="{{ url_for('site_enrollment.catalog_term', term=term) }}">
+    <button class=" mb-4 btn btn-primary" type="button">Search Again</button>
+  </a>
+
+  {% set subject = request.form.get('subject') or request.args.get('subject') or '' %}
+  {% set course = request.form.get('course') or request.args.get('course') or '' %}
+  {% set base_url = url_for('site_enrollment.catalog_term', term=term) ~ '?subject=' ~ subject ~ '&course=' ~ course ~ '&page=' %}
+
   {{ pagination(
       current_page=current_page,
       total_pages=total_pages,
       hx_target="#courses-content",
       items_per_page=items_per_page,
       total_items=total_items,
-      base_url=url_for('site_enrollment.catalog_term', term=term) ~ "?subject=" ~ subject ~ "&course=" ~ course ~ "&page="
+      base_url = base_url
   ) }}
-
-  <a href="{{ url_for('site_enrollment.catalog_term', term=term) }}">
-    <button class=" mb-4 btn btn-primary" type="button">Search Again</button>
-  </a>
 </div>
