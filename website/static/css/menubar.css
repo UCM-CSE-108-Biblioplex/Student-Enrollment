@@ -1,0 +1,71 @@
+/* === Menu Bar Component === */
+.menubar-wrapper {
+    position: relative; /* Or 'sticky' if needed */
+    display: inline-block; /* Or 'block' for full width */
+    background-color: var(--bg-primary); /* Base background */
+    border-radius: var(--radius-md);
+    border: 1px solid var(--surface-0);
+    padding: var(--space-1);
+    box-shadow: 0 2px 5px var(--shadow);
+    /* Ensure focus outline is visible if wrapper is focused */
+    outline: none; 
+}
+.menubar-wrapper:focus-within {
+    /* Optional: Style when any child has focus */
+    /* border-color: var(--accent); */
+}
+
+.menubar-inner {
+    display: flex;
+    align-items: stretch; /* Make triggers fill height */
+    height: 32px; /* Consistent height for the bar */
+}
+
+.menubar-menu-container {
+    position: relative; /* Context for the menu panel */
+    display: flex; /* Ensure trigger takes space */
+}
+
+.menubar-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-3);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: default; /* Standard menubar cursor */
+    white-space: nowrap;
+    height: 100%;
+    transition: background-color var(--transition-fast) var(--ease-out),
+        color var(--transition-fast) var(--ease-out);
+}
+.menubar-trigger:hover {
+    background-color: var(--surface-0);
+}
+.menubar-trigger.active { /* Style when its menu is open */
+    /* background-color: var(--surface-1);
+    color: var(--text-primary); */
+}
+
+.menubar-menu-panel {
+    position: absolute;
+    top: calc(100% + var(--space-1)); /* Position below trigger */
+    left: 0; /* Align with trigger */
+    z-index: 1020; 
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 5px 15px var(--shadow);
+    /* overflow: hidden;    */
+    transform-origin: top left; 
+    min-width: 12rem; /* Default min-width */
+}
+
+/* Reuse dropdown content padding */
+/* .dropdown-menu-content { padding: var(--space-2); } */
+
+/* Reuse dropdown item/divider/heading/submenu styles */
+/* Ensure styles from dropdown.css are loaded */

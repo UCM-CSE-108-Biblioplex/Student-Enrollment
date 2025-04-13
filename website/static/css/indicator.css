@@ -1,0 +1,84 @@
+/* === HTMX Indicator Component === */
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity var(--transition-normal) var(--ease-out);
+    pointer-events: none;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Spinner indicator */
+.spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.spinner-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid var(--surface-1);
+    border-radius: var(--radius-full);
+    border-top-color: var(--accent);
+    animation: spinner-rotate 0.8s linear infinite;
+}
+
+.spinner-sm .spinner-icon {
+    width: 1rem;
+    height: 1rem;
+    border-width: 2px;
+}
+
+.spinner-lg .spinner-icon {
+    width: 2rem;
+    height: 2rem;
+    border-width: 3px;
+}
+
+@keyframes spinner-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Overlay indicator */
+.htmx-indicator-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(var(--bg-primary-rgb), 0.7);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border-radius: inherit;
+    z-index: 10;
+}
+
+/* Inline indicator */
+.htmx-indicator-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+}
+
+/* Button indicator */
+.btn .htmx-indicator {
+    margin-right: var(--space-2);
+}
+
+/* Progress bar indicator */
+.htmx-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background-color: var(--accent);
+    z-index: 1060;
+    transition: width 0.3s ease;
+}

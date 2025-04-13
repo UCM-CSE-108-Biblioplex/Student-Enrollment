@@ -1,0 +1,102 @@
+/* === Pagination Component === */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-4);
+    border-top: 1px solid var(--surface-0);
+    margin-top: var(--space-4);
+}
+
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.pagination-info-highlight {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.pagination-nav {
+    display: flex;
+    align-items: center;
+}
+
+.pagination-list {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--surface-0);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    height: 2.25rem; /* 36px */
+    list-style-type: none;
+}
+
+.pagination-item {
+    height: 100%;
+    border-right: 1px solid var(--surface-0);
+}
+
+.pagination-item:last-child {
+    border-right: none;
+}
+
+.pagination-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 var(--space-3);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color var(--transition-fast) var(--ease-out),
+                background-color var(--transition-fast) var(--ease-out);
+}
+
+.pagination-link:hover {
+    color: var(--text-primary);
+    background-color: var(--surface-0);
+}
+
+.pagination-link-active {
+    color: var(--text-primary);
+    background-color: var(--surface-0);
+    font-weight: 600;
+}
+
+.pagination-link-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent);
+}
+
+.pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 var(--space-2);
+    color: var(--text-secondary);
+}
+
+/* Responsive styles */
+@media (max-width: 640px) {
+    .pagination-container {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: center;
+    }
+    
+    .pagination-number {
+        display: none;
+    }
+}

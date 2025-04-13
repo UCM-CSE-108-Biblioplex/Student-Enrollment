@@ -1,0 +1,176 @@
+/* === Banner Components === */
+.banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    z-index: 4; /* Ensure banners are on top */
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: 0 4px 15px var(--shadow);
+    border: 1px solid var(--surface-0);
+}
+
+/* --- Flash Banner (Top Center Floating) --- */
+.banner-flash-container {
+    position: fixed;
+    top: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px; /* Adjust as needed */
+    z-index: 1050; /* Higher than navbar */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    pointer-events: none; /* Allow clicks through the container */
+}
+
+.banner-flash {
+    width: 100%;
+    pointer-events: auto; /* Enable clicks on the banner itself */
+}
+
+/* Flash message categories */
+.banner-success {
+    background-color: var(--latte-green); /* Use specific colors */
+    color: var(--latte-base);
+    border-color: var(--latte-green);
+}
+html.dark-theme .banner-success {
+    background-color: var(--mocha-green);
+    color: var(--mocha-base);
+    border-color: var(--mocha-green);
+}
+
+.banner-error {
+    background-color: var(--latte-red);
+    color: var(--latte-base);
+    border-color: var(--latte-red);
+}
+html.dark-theme .banner-error {
+    background-color: var(--mocha-red);
+    color: var(--mocha-base);
+    border-color: var(--mocha-red);
+}
+
+.banner-warning {
+    background-color: #f5a97f; /* Example: Catppuccin Peach */
+    color: var(--latte-base);
+    border-color: #f5a97f;
+}
+html.dark-theme .banner-warning {
+    background-color: #fab387; /* Example: Catppuccin Peach */
+    color: var(--mocha-base);
+    border-color: #fab387;
+}
+
+.banner-info {
+    background-color: var(--latte-blue);
+    color: var(--latte-base);
+    border-color: var(--latte-blue);
+}
+html.dark-theme .banner-info {
+    background-color: var(--mocha-blue);
+    color: var(--mocha-base);
+    border-color: var(--mocha-blue);
+}
+
+/* --- Top Banner (Sticky) --- */
+.banner-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--surface-0);
+    box-shadow: 0 2px 5px var(--shadow);
+    z-index: 999; /* Below flash messages, potentially above navbar if needed */
+}
+
+/* --- Bottom Banner (Sticky) --- */
+.banner-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid var(--surface-0);
+    box-shadow: 0 -2px 5px var(--shadow);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+    .banner-bottom {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-4);
+        /* Optional: Make it not full width on larger screens */
+        /* left: auto; 
+                bottom: var(--space-4);
+                right: var(--space-4);
+                max-width: 600px; 
+                border-radius: var(--radius-lg);
+                border: 1px solid var(--surface-0); */
+    }
+}
+
+/* --- Banner Content & Actions --- */
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-grow: 1;
+}
+
+.banner-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.banner-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.banner-message {
+    flex-grow: 1;
+    line-height: 1.4;
+}
+
+.banner-actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+.banner-close-btn {
+    background: none;
+    border: none;
+    color: inherit; /* Inherit color from banner */
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 0;
+    margin-left: var(--space-4);
+    flex-shrink: 0;
+    transition: opacity var(--transition-fast) var(--ease-out);
+    display: inline-flex; /* Ensures SVG size is respected */
+    align-items: center; /* Vertically center SVG */
+}
+
+.banner-close-btn:hover {
+    opacity: 1;
+}
+
+.banner-close-btn svg {
+    width: 18px;
+    height: 18px;
+}
