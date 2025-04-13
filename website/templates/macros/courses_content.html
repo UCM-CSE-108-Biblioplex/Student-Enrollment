@@ -6,6 +6,7 @@
 {{ pagination(
     current_page=current_page,
     total_pages=total_pages,
+    hx_target='#courses-content',
     items_per_page=items_per_page,
     total_items=total_courses,
     base_url="/api/v1/courses?page="
@@ -18,6 +19,7 @@
 {{ pagination(
     current_page=current_page,
     total_pages=total_pages,
+    hx_target='#courses-content',
     items_per_page=items_per_page,
     total_items=total_courses,
     base_url="/api/v1/courses?page="
@@ -54,6 +56,16 @@
             <label for="course-{{ course.id }}-number">Course Number:</label>
             <input class="form-input" type="text" id="course-{{ course.id }}-number" name="number" placeholder="Course Number" value="{{ course.number }}">
         </div>
+
+        <div class="form-group">
+            <label for="course-{{ course.id }}-session">Course Session:</label>
+            <input class="form-input" type="text" id="course-{{ course.id }}-id" name="session" placeholder="Course Session" value="{{ course.session }}">
+        </div>
+
+        <div clas="form-group">
+            <label for="course-{{ course.id }}-units">Course Units:</label>
+            <input id="course-{{ course.id }}-units" name="units" placeholder="Course Units" value="{{ course.units }}">
+        </div>
     </form>
     {% endset %}
 
@@ -63,7 +75,7 @@
         class="btn btn-primary"
         hx-put="{{ url_for('api_main.courses') }}"
         hx-include="#course-{{ course.id }}-form"
-        hx-headers='{"Accepr": "text/html"}'
+        hx-headers='{"Accept": "text/html"}'
         hx-target="#courses-content"
         hx-swap="innerHTML"
         @htmx:afterSettle="open = false">

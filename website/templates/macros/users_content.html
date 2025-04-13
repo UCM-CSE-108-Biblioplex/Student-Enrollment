@@ -6,6 +6,7 @@
 {{ pagination(
     current_page=current_page,
     total_pages=total_pages,
+    hx_target='#users-content',
     items_per_page=items_per_page,
     total_items=total_users,
     base_url="/api/v1/users?page="
@@ -18,6 +19,7 @@
 {{ pagination(
     current_page=current_page,
     total_pages=total_pages,
+    hx_target='#users-content',
     items_per_page=items_per_page,
     total_items=total_users,
     base_url="/api/v1/users?page="
