@@ -65,16 +65,31 @@ def catalog_term(term):
         query = query.filter(Course.dept.ilike(f"%{subjectData}%"), Course.number == courseID)
 
     courses_cat = query.all()
+    total_items = len(courses_cat)
 
+    page = int(request.args.get("page", 1))
+    items_per_page = 10
+    start = (page - 1) * items_per_page
+    end = start + items_per_page
+    paginated_courses = courses_cat[start:end]
 
     titles = ["Course Name", "Department", "Number"]
-    rows = [[c.name, c.dept, c.number] for c in query]
+    rows = [[c.name, c.dept, c.number] for c in paginated_courses]
     show_results = bool(subjectData or courseID)
+
+    total_pages = (total_items + items_per_page - 1) // items_per_page
 
     if request.headers.get("HX-Request"):
         if not show_results:
             return ""  
-        return render_template("partials/course_table.html", titles=titles, rows=rows, term=term)
+        return render_template("partials/course_table.html", 
+        titles=titles, 
+        rows=rows, 
+        term=term, 
+        current_page=page, 
+        total_pages=total_pages, 
+        items_per_page=items_per_page, 
+        total_items=total_items)
 
 
     return render_template(
@@ -83,10 +98,11 @@ def catalog_term(term):
         titles=titles,
         rows=rows,
         courses=courses_cat,
-        current_page=1,
-        total_pages=1,
-        items_per_page=len(rows),
-        show_results = show_results
+        current_page=page,
+        total_pages=total_pages,
+        items_per_page=items_per_page,
+        total_items=total_items,
+        show_results=show_results
     )
 
 @site_enrollment.route("/Enroll")

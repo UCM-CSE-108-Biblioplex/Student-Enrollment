@@ -1,7 +1,19 @@
 {% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
 
-{{ table("courses-table", rows, titles, variant="striped", responsive=true) }}
+<div id="courses-content">
+  {{ table("courses-table", rows, titles, variant="striped", responsive=true) }}
 
-<a href="{{ url_for('site_enrollment.catalog_term', term=term) }}">
+  {{ pagination(
+      current_page=current_page,
+      total_pages=total_pages,
+      hx_target="#courses-content",
+      items_per_page=items_per_page,
+      total_items=total_items,
+      base_url=url_for('site_enrollment.catalog_term', term=term) ~ "?subject=" ~ subject ~ "&course=" ~ course ~ "&page="
+  ) }}
+
+  <a href="{{ url_for('site_enrollment.catalog_term', term=term) }}">
     <button class=" mb-4 btn btn-primary" type="button">Search Again</button>
   </a>
+</div>
