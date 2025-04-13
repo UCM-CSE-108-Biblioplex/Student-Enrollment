@@ -11,5 +11,80 @@
     <div id="courses-content">
         {% include "macros/courses_content.html" %}
     </div>
+
+    {% from "macros/modal.html" import modal_shell %}
+
+    {% set trigger_html %}
+    <button class="btn btn-primary mb-8">Add New Course</button>
+    {% endset %}
+
+    {% set content_html %}
+    <form id="course-new-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <input type="hidden" style="display: none" value="new" name="course_id" id="course-new-id">
+
+        <div class="form-group">
+            <label for="course-new-term">Term:</label>
+            <select class="form-select" id="course-new-term" name="term">
+                {% for term in terms %}
+                <option>{{ term }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-name">Name:</label>
+            <input class="form-input" type="text" id="course-new-name" name="name" placeholder="Course Name">
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-dept">Department:</label>
+             <select class="form-select" id="course-new-dept" name="dept">
+                {% for dept in depts %}
+                <option>{{ dept }}</option>
+                {% endfor %}
+             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-number">Course Number:</label>
+            <input class="form-input" type="text" id="course-new-number" name="number" placeholder="Course Number">
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-session">Course Session:</label>
+            <input class="form-input" type="text" id="course-new-id" name="session" placeholder="Course Session">
+        </div>
+
+        <div clas="form-group">
+            <label for="course-new-units">Course Units:</label>
+            <input class="form-input" type="number" id="course-new-units" name="units" placeholder="Course Units">
+        </div>
+    </form>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    <button
+        class="btn btn-primary"
+        hx-put="{{ url_for('api_main.courses') }}"
+        hx-include="#course-new-form"
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#courses-content"
+        hx-swap="innerHTML"
+        @click="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Create Course
+    </button>
+    {% endset %}
+
+    {{ modal_shell(
+        id='course-modal-new',
+        trigger_html=trigger_html,
+        title='Create Course',
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
 </div>
 {% endblock %}

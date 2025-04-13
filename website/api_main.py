@@ -93,16 +93,20 @@ def get_users(request):
     return users, page, total_pages, total_users, per_page
 
 def create_user(request):
-    data = request.get_json()
+    content_type = request.headers.get("Content-Type")
+    if(content_type == "application/x-www-form-urlencoded"):
+        data = request.form
+    else:
+        data = request.get_json()
     if(data is None):
         abort(Response("No request JSON", 400))
     
     is_admin = data.get("is_admin", False)
-    print(is_admin)
-    if(is_admin is not None):
+    if(is_admin and is_admin is not None):
         is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
 
     first_name = data.get("first_name", None)
+    print(data)
     if(not first_name):
         abort(Response("First name is required.", 400))
     middle_name = data.get("middle_name", "")
@@ -111,6 +115,9 @@ def create_user(request):
         abort(Response("Last name is required.", 400))
     
     username = data.get("username", None)
+    existing_user = User.query.filter_by(username=username).first()
+    if(existing_user):
+        abort(Response("Username is taken.", 400))
     if(not username):
         username = generate_username(first_name, middle_name, last_name)
     email = data.get("email", None)
@@ -264,7 +271,11 @@ def get_courses(request):
     return(courses, page, total_pages, total_courses, per_page)
 
 def create_course(request):
-    data = request.get_json()
+    content_type = request.headers.get("Content-Type")
+    if(content_type == "application/x-www-form-urlencoded"):
+        data = request.form
+    else:
+        data = request.get_json()
     if(data is None):
         abort(Response("No request body.", 400))
 
@@ -469,10 +480,53 @@ def users():
         try:
             db.session.add(new_user)
             db.session.commit()
-            return(jsonify(new_user.to_dict()))
         except Exception as e:
             db.session.rollback()
             abort(Response(f"A database error occurred: {str(e)}", 500))
+        
+        accept_header = request.headers.get("Accept", "")
+        if("text/html" in accept_header):
+            # Return HTML for HTMX requests
+            current_page = new_user.id // 50 + 1
+            pagination = User.query.paginate(page=current_page, per_page=50)
+            users = pagination.items
+            titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
+            total_pages = pagination.pages
+            total_users = pagination.total
+            rows = []
+
+            def parse_name(user):
+                name = user.first_name + " "
+                if(user.middle_name):
+                    name += user.middle_name
+                    name += " "
+                name += user.last_name
+                return(name)
+
+            for user in users:
+                # Create a button that will trigger the modal
+                action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
+                rows.append([
+                    user.id,
+                    user.username,
+                    parse_name(user),
+                    user.email,
+                    "Yes" if user.is_admin else "No",
+                    action_button
+                ])
+
+            return render_template(
+                "macros/users_content.html", 
+                users=users,
+                rows=rows,
+                titles=titles,
+                current_page=current_page,
+                total_pages=total_pages,
+                total_users=total_users,
+                items_per_page=50
+            )
+        else:
+            return(jsonify(new_user.to_dict()))
     
     # edit user
     if(request.method == "PUT"):
@@ -569,16 +623,52 @@ def courses():
             return(jsonify(response))
     
     if(request.method == "POST"):
+        print("post")
         if(not g.user.is_admin):
             abort(Response("Insufficient permissions.", 403))
         new_course = create_course(request)
         try:
             db.session.add(new_course)
             db.session.commit()
-            return(jsonify(new_course.to_dict()))
         except Exception as e:
             db.session.rollback()
             abort(Response(f"A database error occured: {str(e)}", 500))
+        
+        accept_header = request.headers.get("Accept", "")
+        if("text/html" in accept_header):
+            current_page = new_course.id // 5 + 1
+            pagination = Course.query.paginate(page=current_page, per_page=50)
+            courses= pagination.items
+            titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+            total_pages = pagination.pages
+            total_courses = pagination.total
+            rows = []
+
+            for course in courses:
+                action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
+                rows.append([
+                    course.id,
+                    course.name,
+                    course.dept,
+                    course.number,
+                    course.session,
+                    course.units,
+                    action_button
+                ])
+            return(render_template(
+                "admin_courses.html",
+                courses=courses,
+                rows=rows,
+                titles=titles,
+                current_page=page,
+                total_pages=total_pages,
+                total_courses=total_courses,
+                items_per_page=per_page,
+                depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
+                terms=["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", "F12", "S13", "Su13", "F13", "S14", "Su14", "F14", "S15", "Su15", "F15", "S16", "Su16", "F16", "S17", "Su17", "F17", "S18", "Su18", "F18", "S19", "Su19", "F19", "S20", "Su20", "F20", "S21", "Su21", "F21", "S22", "Su22", "F22", "S23", "Su23", "F23", "S24", "Su24", "F24", "S25", "Su25", "F25"]
+            ))
+        else:
+            return(jsonify(new_course.to_dict()))
     
     if(request.method == "PUT"):
         if(not g.user.is_admin):
@@ -594,10 +684,39 @@ def courses():
         
         accept_header = request.headers.get("Accept", "")
         if("text/html" in accept_header):
-            # code for HTMX SSR goes here
-            pass
+            current_page = target_course.id // 5 + 1
+            pagination = Course.query.paginate(page=current_page, per_page=50)
+            courses= pagination.items
+            titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+            total_pages = pagination.pages
+            total_courses = pagination.total
+            rows = []
+
+            for course in courses:
+                action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
+                rows.append([
+                    course.id,
+                    course.name,
+                    course.dept,
+                    course.number,
+                    course.session,
+                    course.units,
+                    action_button
+                ])
+            return(render_template(
+                "admin_courses.html",
+                courses=courses,
+                rows=rows,
+                titles=titles,
+                current_page=page,
+                total_pages=total_pages,
+                total_courses=total_courses,
+                items_per_page=per_page,
+                depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
+                terms=["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", "F12", "S13", "Su13", "F13", "S14", "Su14", "F14", "S15", "Su15", "F15", "S16", "Su16", "F16", "S17", "Su17", "F17", "S18", "Su18", "F18", "S19", "Su19", "F19", "S20", "Su20", "F20", "S21", "Su21", "F21", "S22", "Su22", "F22", "S23", "Su23", "F23", "S24", "Su24", "F24", "S25", "Su25", "F25"]
+            ))
         else:
-            return(jsonify(target_course.to_dict()))
+            return(jsonify(new_course.to_dict()))
 
 @api_main.route("/username")
 def username():

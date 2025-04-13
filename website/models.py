@@ -20,6 +20,18 @@ class User(db.Model, UserMixin):
     def to_dict(self):
         return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
 
+    def get_courses_role(self, role):
+        courses_with_role = db.session.query(
+            Course
+        ).join(
+            roles
+        ).filter(
+            roles.c.user_id == self.id
+        ).filter(
+            roles.c.role_id == role.id
+        ).all()
+        return(courses_with_role)
+
 class APIKey(db.Model):
     __tablename__ = "keys"
     id = db.Column(db.Integer, primary_key=True)
@@ -80,6 +92,7 @@ class Schedule(db.Model):
     __tablename__ = "schedules"
     id=db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey("courses.id"))
+    schedule_type = db.Column(db.String(31), nullable=False)
     
     sunday = db.Column(db.Boolean)
     monday = db.Column(db.Boolean)
