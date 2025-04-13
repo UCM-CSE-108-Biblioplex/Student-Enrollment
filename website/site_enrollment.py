@@ -47,13 +47,27 @@ def catalog():
 @site_enrollment.route("/course_catalog/<string:term>")
 def catalog_term(term):
     courses_cat = Course.query.filter_by(semester=term).all()
+
+    titles = ["Course Name", "Department", "Number", "Semester"]
+    rows = [[c.name, c.dept, c.number, c.semester] for c in courses_cat]
+
+
     # returns a list of courses offered
     #   - includes course name, ID, CRN, etc.
     #   - includes instructorm TAs
     #   - includes Dates/Times of classes, exams
     #       - hovercard w/ calendar element would be neat
     #   - includes level of enrollment, waitlist availability
-    return (render_template("courses.html", term=term, courses=courses_cat))
+    return render_template(
+        "courses.html",
+        term=term,
+        titles=titles,
+        rows=rows,
+        courses=courses_cat,
+        current_page=1,
+        total_pages=1,
+        items_per_page=len(rows)
+    )
 
 @site_enrollment.route("/Enroll")
 @login_required

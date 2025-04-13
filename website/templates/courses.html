@@ -1,13 +1,26 @@
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+
 {% extends "master.html" %}
+
 {% block body %}
-<div class="container">
-    <h2 class="mb-4 mt-8">Course Catalog for {{ term|title }}</h2>
-    <ul class="ml-8 list-group">
-        {% for course in courses %}
-        <li class="list-group-item">
-            <strong>{{ course.dept }} {{ course.number }}</strong>: {{ course.name }}
-        </li>
-        {% endfor %}
-  </ul>
+<div class="container mt-10">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"></h2>
+    </div>
+
+    <div class="table-container card shadow p-4 rounded bg-white border-0">
+        <table class ="table table-responsive">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Course ID</th>
+                    <th>Title</th>
+    
+                </tr>
+            </thead>
+        </table>
+    </div>
 </div>
 {% endblock %}
