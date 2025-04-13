@@ -51,7 +51,7 @@ def catalog_term(term):
     #   - includes Dates/Times of classes, exams
     #       - hovercard w/ calendar element would be neat
     #   - includes level of enrollment, waitlist availability
-    return("Endpoint Incomplete", 404)
+     return (render_template("courses.html", term=term))
 
 @site_enrollment.route("/Enroll")
 @login_required
