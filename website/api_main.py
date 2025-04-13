@@ -101,7 +101,7 @@ def create_user(request):
     if(is_admin is not None):
         if isinstance(is_admin, str):
             is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
-        target_user.is_admin = is_admin
+        is_admin = is_admin
 
     first_name = data.get("first_name", None)
     if(not first_name):
