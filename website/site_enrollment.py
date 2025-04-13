@@ -67,14 +67,14 @@ def catalog_term(term):
     courses_cat = query.all()
 
 
-    titles = ["Course Name", "Department", "Number", "Semester"]
-    rows = [[c.name, c.dept, c.number, c.semester] for c in query]
+    titles = ["Course Name", "Department", "Number"]
+    rows = [[c.name, c.dept, c.number] for c in query]
     show_results = bool(subjectData or courseID)
 
     if request.headers.get("HX-Request"):
         if not show_results:
             return ""  
-        return render_template("partials/course_table.html", titles=titles, rows=rows)
+        return render_template("partials/course_table.html", titles=titles, rows=rows, term=term)
 
 
     return render_template(
