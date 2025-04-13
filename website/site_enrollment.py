@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from flask_login import login_required
 from .models import Course
 
-site_enrollment = Blueprint("site_enrollment", __name__)
+site_enrollment = Blueprint("site_enrollment", __name__, url_prefix="/enrollment")
 
 @site_enrollment.route("/Test")
 def test():
@@ -44,17 +44,39 @@ def catalog():
     # maybe use a dropdown; maybe use a carousel; idk
     return(render_template("course_catalog.html"))
 
-@site_enrollment.route("/course_catalog/<string:term>")
+
+# returns a list of courses offered
+#   - includes course name, ID, CRN, etc.
+#   - includes instructorm TAs
+#   - includes Dates/Times of classes, exams
+#       - hovercard w/ calendar element would be neat
+#   - includes level of enrollment, waitlist availability
+@site_enrollment.route("/course_catalog/<string:term>", methods = ['POST', 'GET'])
 def catalog_term(term):
-    courses_cat = Course.query.filter_by(semester=term).all()
+    subjectData = request.form.get("subject")
+    courseID = request.form.get("course")
+    query = Course.query.filter_by(semester=term)
+
+    if subjectData and not courseID:
+        query = query.filter(Course.dept.ilike(f"%{subjectData}%"))
+    elif courseID and not subjectData:
+        query = query.filter(Course.number == courseID)
+    elif subjectData and courseID:
+        query = query.filter(Course.dept.ilike(f"%{subjectData}%"), Course.number == courseID)
+
+    courses_cat = query.all()
+
+
     titles = ["Course Name", "Department", "Number", "Semester"]
-    rows = [[c.name, c.dept, c.number, c.semester] for c in courses_cat]
-    # returns a list of courses offered
-    #   - includes course name, ID, CRN, etc.
-    #   - includes instructorm TAs
-    #   - includes Dates/Times of classes, exams
-    #       - hovercard w/ calendar element would be neat
-    #   - includes level of enrollment, waitlist availability
+    rows = [[c.name, c.dept, c.number, c.semester] for c in query]
+    show_results = bool(subjectData or courseID)
+
+    if request.headers.get("HX-Request"):
+        if not show_results:
+            return ""  
+        return render_template("partials/course_table.html", titles=titles, rows=rows)
+
+
     return render_template(
         "courses.html",
         term=term,
@@ -63,7 +85,8 @@ def catalog_term(term):
         courses=courses_cat,
         current_page=1,
         total_pages=1,
-        items_per_page=len(rows)
+        items_per_page=len(rows),
+        show_results = show_results
     )
 
 @site_enrollment.route("/Enroll")

@@ -2,43 +2,47 @@
 {% from "macros/pagination.html" import pagination %}
 {% from "macros/modal.html" import modal_shell %}
 
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/search_filter.js') }}"></script>
+{% endblock %}
+
 {% extends "master.html" %}
 
 {% block body %}
+<input type="hidden" id="term-hidden" value="{{ term }}">
 <div class="container mt-10">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mt-8 fw-bold">Enter Your Search Criteria</h2>
         <h5 class ="mb-4">Term: {{ term|title }}</h5>
     </div>
 
-    
+    <div id="courses-content">
+        {% if show_results %}
+            {% include "partials/course_table.html" %}
+        {% else %}
+        <form 
+            id="search-form"
+            hx-post="/enrollment/course_catalog/{{ term }}"
+            hx-target="#courses-content"
+            hx-include="[name='subject'], [name='course']"
+            hx-push-url="false">
 
-
-
+            
+            <div class="form-group mb-4 d-flex align-items-center">
+            <label for="subject" class="form-label me-2 mb-0">Subject:</label>
+            <input class="form-input" type="text" name="subject" id="subject" placeholder="Subject">
+            </div>
+        
+            <div class="form-group mb-4 d-flex align-items-center">
+            <label for="course-num" class="form-label me-2 mb-0">Course Number:</label>
+            <input class="form-input" type="text" name="course" id="course-num" placeholder="Course Number">
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+      
 {% endblock %}
 
 
-<!-- <div class="table-container">
-        
-    <table class ="table table-responsive">
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>Course ID</th>
-                <th>Title</th>
 
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for course in courses %}
-            <tr>
-                <td>{{ course.dept }}</td>
-                <td>{{ course.number }}</td>
-                <td>{{ course.name }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-</div> -->
