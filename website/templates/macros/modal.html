@@ -1,0 +1,59 @@
+{% macro modal_shell(id, trigger_html, title, content_html, footer_html=None, size='md', overlay_style='dark', panel_style='bordered') %}
+<div x-data="{ open: false }" 
+     @keydown.escape.window="open = false"
+     class="modal-trigger-wrapper"
+     @close-modal.window="open = false">
+
+    {# Trigger Slot #}
+    <div @click="open = true">
+        {{ trigger_html | safe }}
+    </div>
+
+    {# Modal Structure #}
+    <div 
+         class="modal-container" 
+         id="{{ id }}-container" 
+         :class="{ 'modal-visible': open }"
+         x-cloak>
+        
+        {# Overlay #}
+        <div
+             @click="open = false" 
+             class="modal-overlay modal-overlay-{{ overlay_style }}"
+             :class="{ 'modal-visible': open }">
+        </div>
+
+        {# Panel #}
+        <div
+             class="modal-panel modal-panel-{{ panel_style }} modal-size-{{ size }}"
+             :class="{ 'modal-visible': open }"
+             role="dialog" 
+             aria-modal="true" 
+             aria-labelledby="{{ id }}-title">
+            
+            {# Header #}
+            <div class="modal-header">
+                <h3 class="modal-title" id="{{ id }}-title">{{ title }}</h3>
+                <button @click="open = false" class="modal-close-button" aria-label="Close modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            {# Content Slot #}
+            <div class="modal-content">
+                {{ content_html | safe }}
+            </div>
+
+            {# Footer Slot (Optional) #}
+            {% if footer_html %}
+            <div class="modal-footer">
+                {{ footer_html | safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endmacro %}

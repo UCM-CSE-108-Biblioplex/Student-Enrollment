@@ -1,0 +1,102 @@
+{% macro pagination(current_page, total_pages, hx_target, id="pagination", items_per_page=50, total_items=0, base_url="?page=") %}
+<div id="{{ id }}" class="pagination-container">
+    {% if total_items > 0 %}
+    <div class="pagination-info">
+        Showing 
+        <span class="pagination-info-highlight">{{ ((current_page - 1) * items_per_page) + 1 }}</span> 
+        to 
+        <span class="pagination-info-highlight">{{ [current_page * items_per_page, total_items] | min }}</span> 
+        of 
+        <span class="pagination-info-highlight">{{ total_items }}</span> 
+        results
+    </div>
+    {% endif %}
+    
+    <nav class="pagination-nav">
+        <ul class="pagination-list">
+            {# Previous button #}
+            <li class="pagination-item">
+                <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ current_page - 1 }}" 
+                   class="pagination-link{% if current_page == 1 %} disabled{% endif %}"
+                   {% if current_page == 1 %}aria-disabled="true"{% endif %}>
+                    Previous
+                </a>
+            </li>
+            
+            {# First page #}
+            {% if total_pages > 0 %}
+            <li class="pagination-item pagination-number">
+                <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}1" 
+                   class="pagination-link{% if current_page == 1 %} pagination-link-active{% endif %}">
+                    1
+                </a>
+            </li>
+            {% endif %}
+            
+            {# Ellipsis if needed #}
+            {% if current_page > 4 %}
+            <li class="pagination-item pagination-number">
+                <span class="pagination-ellipsis">...</span>
+            </li>
+            {% endif %}
+            
+            {# Pages before current #}
+            {% for i in range(current_page - 2, current_page) %}
+                {% if i > 1 and i < total_pages %}
+                <li class="pagination-item pagination-number">
+                    <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ i }}" class="pagination-link">
+                        {{ i }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {# Current page (if not first or last) #}
+            {% if current_page > 1 and current_page < total_pages %}
+            <li class="pagination-item pagination-number">
+                <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ current_page }}" class="pagination-link pagination-link-active">
+                    {{ current_page }}
+                </a>
+            </li>
+            {% endif %}
+            
+            {# Pages after current #}
+            {% for i in range(current_page + 1, current_page + 3) %}
+                {% if i > 1 and i < total_pages %}
+                <li class="pagination-item pagination-number">
+                    <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ i }}" class="pagination-link">
+                        {{ i }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {# Ellipsis if needed #}
+            {% if current_page < total_pages - 3 %}
+            <li class="pagination-item pagination-number">
+                <span class="pagination-ellipsis">...</span>
+            </li>
+            {% endif %}
+            
+            {# Last page (if not first) #}
+            {% if total_pages > 1 %}
+            <li class="pagination-item pagination-number">
+                <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ total_pages }}" 
+                   class="pagination-link{% if current_page == total_pages %} pagination-link-active{% endif %}">
+                    {{ total_pages }}
+                </a>
+            </li>
+            {% endif %}
+            
+            {# Next button #}
+            <li class="pagination-item">
+                <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ current_page + 1 }}" 
+                   class="pagination-link{% if current_page == total_pages %} disabled{% endif %}"
+                   {% if current_page == total_pages %}aria-disabled="true"{% endif %}>
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endmacro %}

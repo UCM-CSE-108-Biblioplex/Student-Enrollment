@@ -1,0 +1,28 @@
+{% macro search_input() %}
+<div class="search-container" x-data="{ searchQuery: '' }">
+    <div class="form-group">
+        <label for="user-search" class="form-label">Search Users</label>
+        <input 
+            type="text" 
+            id="user-search" 
+            class="form-input" 
+            placeholder="Search by username..." 
+            x-model="searchQuery"
+            x-init="
+                $watch('searchQuery', value => {
+                    if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
+                    searchDebounceTimeout = setTimeout(() => {
+                        htmx.trigger('#user-search', 'search');
+                    }, 500);
+                })
+            "
+            hx-get="/api/v1/users"
+            hx-trigger="search from:this"
+            hx-target="#users-table-container"
+            hx-swap="innerHTML"
+            hx-vals='js:{username: searchQuery}'
+            hx-headers='{"Accept": "text/html"}'
+        >
+    </div>
+</div>
+{% endmacro %}

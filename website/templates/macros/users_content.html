@@ -1,0 +1,127 @@
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#users-content',
+    items_per_page=items_per_page,
+    total_items=total_users,
+    base_url="/api/v1/users?page="
+) }}
+
+{# Table component #}
+{{ table("users-table", rows, titles) }}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#users-content',
+    items_per_page=items_per_page,
+    total_items=total_users,
+    base_url="/api/v1/users?page="
+) }}
+
+{# Modal definitions #}
+{% for user in users %}
+    {% set trigger_id="user-" ~ user.id ~ "-modal" %}
+
+    {% set trigger_html %}
+    <span id="{{ trigger_id }}" class="hidden"></span>
+    {% endset %}
+
+    {% set content_html %}
+    <form id="user-{{ user.id }}-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <input type="hidden" style="display: none" value="{{ user.id }}" name="user_id" id="user-{{ user.id }}-id">
+        <div class="form-group">
+            <label for="user-{{ user.id }}-username">Username:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-username" name="username" placeholder="Username" value="{{ user.username }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-first-name">First Name:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-first-name" name="first_name" placeholder="First Name" value="{{ user.first_name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-middle-name">Middle Name:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-middle-name" name="middle_name" placeholder="Middle Name (Nullable)" value="{{ user.middle_name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-last-name">Last Name:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-last-name" name="last_name" placeholder="Last Name" value="{{ user.last_name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-email">Email:</label>
+            <input class="form-input" type="text" id="user-{{ user.id }}-email" name="email" placeholder="Email" value="{{ user.email }}">
+        </div>
+
+        <div class="form-group">
+            <label for="user-{{ user.id }}-password">Password (Leave Blank to Keep Unchanged):</label>
+            <input class="form-input" type="password" id="user-{{ user.id }}-password" name="password" placeholder="Password">
+        </div>
+
+        <div class="form-group" x-data="{isOn: {{ 'true' if user.is_admin else 'false' }}}">
+            <input 
+                type="checkbox" 
+                name="is_admin" 
+                id="user-{{ user.id }}-is-admin" 
+                class="toggle-switch-input" 
+                x-model="isOn"
+                :value="isOn"
+                tabindex="-1"
+                aria-hidden="true">
+            <button 
+                type="button" 
+                @click="isOn = !isOn; $refs.input.focus()"
+                x-ref="input"
+                role="switch" 
+                :aria-checked="isOn.toString()"
+                :class="{ 'on': isOn }"
+                class="toggle-switch-button"
+                aria-labelledby="user-{{ user.id }}-is-admin-label">
+                <span class="toggle-switch-thumb" :class="{ 'on': isOn }"></span>
+            </button>
+        
+            <label 
+                id="user-{{ user.id }}-is-admin-label"
+                @click="isOn = !isOn; $refs.input.focus()"
+                class="toggle-switch-label"
+                :class="{ 'on': isOn }">
+                Administrator
+            </label>
+        </div>
+              
+    </form>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    <button 
+        class="btn btn-primary" 
+        hx-put="{{ url_for('api_main.users') }}" 
+        hx-include="#user-{{ user.id }}-form" 
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#users-content"
+        hx-swap="innerHTML"
+        @htmx:afterSettle="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Save Changes
+    </button> 
+    {% endset %}
+
+    {{ modal_shell(
+        id='user-modal-' ~ user.id, 
+        trigger_html=trigger_html, 
+        title='User Details: ' ~ user.username, 
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
+{% endfor %}
