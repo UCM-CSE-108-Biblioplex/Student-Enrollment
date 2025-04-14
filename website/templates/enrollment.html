@@ -17,9 +17,6 @@
         </div>
 
         <div id="courses-content">
-            {% if show_results %}
-                {% include "macros/course_content.html" %}
-            {% else %}
             <form 
                 id="search-form"
                 hx-post="/enrollment/course_catalog/{{ term }}"
@@ -38,10 +35,9 @@
                 <input class="form-input" type="text" name="course" id="course-num" placeholder="Course Number">
                 </div>
             </form>
-            <a href="{{ url_for('site_enrollment.catalog')}}">
+            <a href="{{ url_for('site_enrollment.enroll')}}">
                 <button class="mt-4 mb-8 btn btn-primary" type="button">Select New Term</button>
             </a>
-            {% endif %}
         </div>
     </div>
       

@@ -17,9 +17,6 @@
         </div>
 
         <div id="courses-content">
-            {% if show_results %}
-                {% include "partials/course_table.html" %}
-            {% else %}
             <form 
                 id="search-form"
                 hx-post="/enrollment/course_catalog/{{ term }}"
@@ -40,8 +37,7 @@
             </form>
             <a href="{{ url_for('site_enrollment.catalog')}}">
                 <button class="mt-4 mb-8 btn btn-primary" type="button">Select New Term</button>
-            </a>
-            {% endif %}
+            </a>s
         </div>
     </div>
       
