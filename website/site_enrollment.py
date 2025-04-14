@@ -24,7 +24,7 @@ def classes():
     # just a page with links to different
     # site_enrollment.classes_term endpoints
     # maybe use a dropdown; maybe use a carousel; idk
-    return("Endpoint Incomplete", 404)
+     return("Endpoint Incomplete", 404)
 
 @site_enrollment.route("/Classes/<string:term>")
 @login_required
@@ -120,7 +120,7 @@ def enroll():
     # just a page with links to different
     # site_enrollment.enroll_term endpoints
     # maybe use a carousel; maybe use a dropdown; idk
-    return("Endpoint Incomplete", 404)
+    return(render_template("termSelection.html"))
 
 @site_enrollment.route("/Enroll/<string:term>")
 @login_required
@@ -130,4 +130,7 @@ def enroll_term(term):
     # has a course catalog and calendar of selected term
     # checks enrollment availability before allowing db changes
     # maybe include prerequisites/restrictions
-    return("Endpoint Incomplete", 404)
+    return(render_template(
+    "enrollment.html",
+     term = term, 
+    ))
