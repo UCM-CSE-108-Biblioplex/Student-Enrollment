@@ -57,7 +57,7 @@ def catalog_term(term):
     subjectData = (request.form.get("subject") or request.args.get("subject") or "").strip()
     courseID = (request.form.get("course") or request.args.get("course") or "").strip()
 
-    query = Course.query.filter_by(semester=term)
+    query = Course.query.filter_by(term=term)
     
 
     if subjectData and not courseID:
@@ -77,7 +77,12 @@ def catalog_term(term):
     paginated_courses = courses_cat[start:end]
 
     titles = ["Course Name", "Department", "Number"]
-    rows = [[c.name, c.dept, c.number] for c in paginated_courses]
+    rows = [[
+        render_template("partials/course_info.html", course=c),
+        c.dept,
+        c.number
+    ] for c in paginated_courses]
+
     show_results = bool(subjectData or courseID or request.args.get("page"))
 
     total_pages = (total_items + items_per_page - 1) // items_per_page
@@ -87,6 +92,7 @@ def catalog_term(term):
             return ""  
         return render_template("partials/course_table.html", 
         titles=titles, 
+        courses=paginated_courses,
         rows=rows, 
         term=term, 
         current_page=page, 
@@ -100,7 +106,7 @@ def catalog_term(term):
         term=term,
         titles=titles,
         rows=rows,
-        courses=courses_cat,
+        courses=paginated_courses,
         current_page=page,
         total_pages=total_pages,
         items_per_page=items_per_page,
