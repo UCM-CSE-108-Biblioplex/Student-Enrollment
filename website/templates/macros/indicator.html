@@ -1,0 +1,55 @@
+{% macro htmx_indicator(type="spinner", size="md", text="", target_selector="", classes="") %}
+{#
+Renders an HTMX loading indicator.
+
+Args:
+    type (str, optional): Type of indicator - "spinner", "overlay", "inline", or "progress". Defaults to "spinner".
+    size (str, optional): Size of the indicator - "sm", "md", or "lg". Defaults to "md".
+    text (str, optional): Text to display alongside the indicator. Defaults to "".
+    target_selector (str, optional): CSS selector for the target element. Used with hx-indicator. Defaults to "".
+    classes (str, optional): Additional CSS classes. Defaults to "".
+#}
+
+{% set indicator_id = "indicator-" ~ range(1000, 9999) | random %}
+
+{% if type == "spinner" %}
+<div id="{{ indicator_id }}" 
+     class="htmx-indicator spinner spinner-{{ size }} {{ classes }}"
+     {% if target_selector %}hx-indicator="{{ target_selector }}"{% endif %}>
+    <div class="spinner-icon"></div>
+    {% if text %}
+    <span class="ml-2">{{ text }}</span>
+    {% endif %}
+</div>
+
+{% elif type == "overlay" %}
+<div id="{{ indicator_id }}" 
+     class="htmx-indicator htmx-indicator-overlay {{ classes }}"
+     {% if target_selector %}hx-indicator="{{ target_selector }}"{% endif %}>
+    <div class="spinner spinner-{{ size }}">
+        <div class="spinner-icon"></div>
+    </div>
+    {% if text %}
+    <span class="ml-2 text-primary">{{ text }}</span>
+    {% endif %}
+</div>
+
+{% elif type == "inline" %}
+<span id="{{ indicator_id }}" 
+      class="htmx-indicator htmx-indicator-inline {{ classes }}"
+      {% if target_selector %}hx-indicator="{{ target_selector }}"{% endif %}>
+    <div class="spinner spinner-{{ size }}">
+        <div class="spinner-icon"></div>
+    </div>
+    {% if text %}
+    <span>{{ text }}</span>
+    {% endif %}
+</span>
+
+{% elif type == "progress" %}
+<div id="{{ indicator_id }}" 
+     class="htmx-indicator htmx-progress-bar {{ classes }}"
+     {% if target_selector %}hx-indicator="{{ target_selector }}"{% endif %}></div>
+{% endif %}
+
+{% endmacro %}

@@ -1,0 +1,96 @@
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#courses-content',
+    items_per_page=items_per_page,
+    total_items=total_courses,
+    base_url="/api/v1/courses?page="
+) }}
+
+{# Table component #}
+{{ table("courses-table", rows, titles) }}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#courses-content',
+    items_per_page=items_per_page,
+    total_items=total_courses,
+    base_url="/api/v1/courses?page="
+) }}
+
+{# Modal definitions #}
+{% for course in courses %}
+    {% set trigger_id="course-" ~ course.id ~ "-modal" %}
+
+    {% set trigger_html %}
+    <span id="{{ trigger_id }}" class="hidden"></span>
+    {% endset %}
+
+    {% set content_html %}
+    <form id="course-{{ course.id }}-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <input type="hidden" style="display: none" value="{{ course.id }}" name="course_id" id="course-{{ course.id }}-id">
+
+        <div class="form-group">
+            <label for="course-{{ course.id }}-term">Term:</label>
+            <input class="form-input" type="text" id="course-{{ course.id }}-term" name="term" placeholder="Course Term" value="{{ course.term }}">
+        </div>
+
+        <div class="form-group">
+            <label for="course-{{ course.id }}-name">Name:</label>
+            <input class="form-input" type="text" id="course-{{ course.id }}-name" name="name" placeholder="Course Name" value="{{ course.name }}">
+        </div>
+
+        <div class="form-group">
+            <label for="course-{{ course.id }}-dept">Department:</label>
+            <input class="form-input" type="text" id="course-{{ course.id }}-dept" name="dept" placeholder="Course Department" value="{{ course.dept }}">
+        </div>
+
+        <div class="form-group">
+            <label for="course-{{ course.id }}-number">Course Number:</label>
+            <input class="form-input" type="text" id="course-{{ course.id }}-number" name="number" placeholder="Course Number" value="{{ course.number }}">
+        </div>
+
+        <div class="form-group">
+            <label for="course-{{ course.id }}-session">Course Session:</label>
+            <input class="form-input" type="text" id="course-{{ course.id }}-id" name="session" placeholder="Course Session" value="{{ course.session }}">
+        </div>
+
+        <div clas="form-group">
+            <label for="course-{{ course.id }}-units">Course Units:</label>
+            <input id="course-{{ course.id }}-units" name="units" placeholder="Course Units" value="{{ course.units }}">
+        </div>
+    </form>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    <button
+        class="btn btn-primary"
+        hx-put="{{ url_for('api_main.courses') }}"
+        hx-include="#course-{{ course.id }}-form"
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#courses-content"
+        hx-swap="innerHTML"
+        @htmx:afterSettle="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Save Changes
+    </button>
+    {% endset %}
+
+    {{ modal_shell(
+        id='course-modal-' ~ course.id,
+        trigger_html=trigger_html,
+        title='Course Details: ' ~ course.name,
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
+{% endfor %}

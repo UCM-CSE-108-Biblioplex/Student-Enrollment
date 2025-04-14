@@ -1,0 +1,119 @@
+/* === Sidebar / Slide-Over Component === */
+.sidebar-container {
+    position: absolute;
+    inset: 0; /* Cover screen */
+    z-index: 1045; /* Below modal, above most other things */
+    /* No flex here, positioning is handled by inner fixed elements */
+}
+
+.sidebar-overlay {
+    position: fixed; 
+    inset: 0;
+    transition-property: opacity;
+}
+.sidebar-overlay-dark {
+    background-color: rgba(0, 0, 0, 0.25); /* Slightly less dark than modal */
+}
+.sidebar-overlay-light {
+    background-color: rgba(var(--bg-primary-rgb), 0.5); 
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+.sidebar-overlay-none {
+    background-color: transparent;
+    pointer-events: none; /* Allow clicks through if no overlay visible */
+}
+
+/* Container to set left/right position and padding */
+.sidebar-positioner {
+    position: fixed;
+    inset-y: 0;
+    display: flex;
+    max-width: 100%; /* Full width available */
+}
+.sidebar-positioner.sidebar-position-right {
+    right: 0;
+    padding-left: var(--space-8); /* Space for handle/drag area if needed */
+}
+.sidebar-positioner.sidebar-position-left {
+    left: 0;
+    padding-right: var(--space-8);
+}
+
+.sidebar-panel {
+    width: 100vw; /* Full viewport width initially */
+    pointer-events: auto; /* Re-enable pointer events for the panel */
+    transition-property: transform;
+    /* Size modifiers control max-width */
+}
+.sidebar-size-sm { max-width: 320px; } /* 20rem */
+.sidebar-size-md { max-width: 448px; } /* 28rem */
+.sidebar-size-lg { max-width: 640px; } /* 40rem */
+
+.sidebar-panel-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Fill the panel height */
+    overflow-y: auto; /* Enable scrolling for content */
+    background-color: var(--bg-primary);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1); /* Default shadow for right */
+    border-left: 1px solid var(--surface-0); /* Default border for right */
+}
+.sidebar-positioner.sidebar-position-left .sidebar-panel-inner {
+        box-shadow: 5px 0 15px rgba(0,0,0,0.1); /* Shadow for left */
+        border-left: none;
+        border-right: 1px solid var(--surface-0);
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--surface-0);
+    flex-shrink: 0; /* Prevent header shrinking */
+}
+
+.sidebar-title {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sidebar-close-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1); /* If adding text */
+    padding: var(--space-2);
+    margin: calc(-1 * var(--space-2)); /* Offset padding */
+    margin-left: var(--space-4);
+    background: none;
+    border: 1px solid transparent; /* Maintain layout */
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.75rem; /* If adding text */
+    text-transform: uppercase; /* If adding text */
+    transition: background-color var(--transition-fast) var(--ease-out),
+        color var(--transition-fast) var(--ease-out),
+        border-color var(--transition-fast) var(--ease-out);
+}
+.sidebar-close-button:hover {
+    background-color: var(--surface-0);
+    color: var(--text-primary);
+    /* border-color: var(--surface-1); */ /* Optional border on hover */
+}
+.sidebar-close-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.sidebar-content {
+    padding: var(--space-6);
+    flex-grow: 1; /* Allow content to fill remaining space */
+    color: var(--text-secondary);
+}
+.sidebar-content > *:last-child {
+    margin-bottom: 0; /* Remove margin from last element */
+}
