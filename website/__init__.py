@@ -9,7 +9,10 @@ load_dotenv()
 
 db = SQLAlchemy()
 
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+FLASK_SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", None)
+if(FLASK_SECRET_KEY is None):
+    print("WARNING: Secret key was not set; using default value.")
+    FLASK_SECRET_KEY = "somesecretkey"
 DB_NAME = os.environ.get("DB_NAME", "database.db")
 
 def start():
