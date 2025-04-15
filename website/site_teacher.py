@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, abort, Response, flash, r
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, Course
+from .models import User, Course, Role
 
 site_teacher = Blueprint("site_teacher", __name__)
 
@@ -76,7 +76,8 @@ def courses():
     courses, page, total_pages, total_courses, per_page = get_courses(request)
     rows = []
 
-    courses = current_user.courses
+    instructor_role = Role.query.filter_by(name="Instructor").first()
+    courses = current_user.get_courses_role(instructor_role)
 
     for course in courses:
         rows.append([
