@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, abort, Response, flash, r
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, Course, Term
+from .models import User, Course, Term, Department
 
 site_admin = Blueprint("site_admin", __name__)
 
@@ -133,6 +133,40 @@ def get_terms(request):
     total_terms = pagination.total
     
     return terms, page, total_pages, total_terms, per_page
+def get_departments(request):
+    try:
+        page = request.values.get("page", 1, type=int)
+    except ValueError:
+        page = 1
+    try:
+        per_page = request.values.get("per_page", 50, type=int)
+    except ValueError:
+        per_page = 50
+    
+    search_term = request.values.get("search", None)
+    
+    query = Department.query
+
+    if(search_term):
+        search_term_like = f"%{search_term}%"
+        query = query.filter(
+            db.or_(
+                Department.name.like(search_term_like),
+                Department.abbreviation.like(search_term_like)
+            )
+        ).order_by(Department.name)
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    departments_ = pagination.items
+    total_pages = pagination.pages
+    total_departments = pagination.total
+    
+    # Return the correct page number requested, handles potential out-of-bounds from error_out=False
+    current_page = page if page <= total_pages else total_pages 
+    if(current_page < 1): current_page = 1 # Ensure page is at least 1
+
+    return(departments_, current_page, total_pages, total_departments, per_page)
 
 @site_admin.route("/")
 def admin_panel():
@@ -268,6 +302,32 @@ def departments():
         flash("You don't have permission to access this page.", "error")
         return(Redirect(url_for("site_main.home")))
     
-    departments_, page, total_pages, total_terms, per_page = get_terms(request)
+    departments_, page, total_pages, total_departments, per_page = get_departments(request)
     rows = []
-    accept_header = '{}'
+
+    for department in departments_:
+        actions = render_template(
+            "macros/actions.html",
+            model=department,
+            endpoint=url_for("api_main.departments"),
+            model_type="department"
+        )
+        rows.append([
+            department.id,
+            department.name,
+            department.abbreviation,
+            actions
+        ])
+    
+    titles = ["ID", "Name", "Abbreviation", "Actions"]
+
+    return(render_template(
+        "admin_departments.html",
+        departments=departments_,
+        rows=rows,
+        titles=titles,
+        current_page=page,
+        total_pages=total_pages,
+        total_departments=total_departments,
+        items_per_page=per_page
+    ))

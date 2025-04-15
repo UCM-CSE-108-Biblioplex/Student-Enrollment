@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash as cph
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, APIKey, CourseCorequisite, Course, Term
+from .models import User, APIKey, CourseCorequisite, Course, Term, Department
 from . import db
 import re
 
@@ -186,8 +186,10 @@ def users():
             target_user.email = email
         
         is_admin = data.get("is_admin")
-        if is_admin is not None:
+        if (is_admin is not None and is_admin.lower() in ["true", "on", "yes", "1"]):
             target_user.is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
+        if(not is_admin):
+            target_user.is_admin = False
         
         password = data.get("password", None)
         if(password):
@@ -225,15 +227,19 @@ def users():
 
         rows = []
         for user in users_:
-            # Create a button that will trigger the modal
-            action_button = f"""<button class="btn btn-primary btn-sm" onclick="document.getElementById('#user-{user.id}-modal').click()">Edit</button>"""
+            actions = render_template(
+                "macros/actions.html",
+                model=user,
+                endpoint=url_for("api_main.users"),
+                model_type="user"
+            )
             rows.append([
                 user.id,
                 user.username,
                 parse_name(user),
                 user.email,
                 "Yes" if user.is_admin else "No",
-                action_button
+                actions
             ])
 
         titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
@@ -948,17 +954,255 @@ def terms():
             return(jsonify(new_term.to_dict()))
     
 
-@api_main.route("/username")
-def username():
-    username = unquote(request.args.get("username", ""))
-    matching_users = User.query.filter_by(username=username).first()
-    if(matching_users):
-        return(jsonify({"valid": False}))
-    else:
-        return(jsonify({"valid": True}))
+@api_main.route("/departments", methods=["GET", "PUT", "POST", "DELETE"])
+@requires_authentication
+def departments():
+    def get_departments(request):
+        try:
+            page = request.values.get("page", 1, type=int)
+        except ValueError:
+            page = 1
+        try:
+            per_page = request.values.get("per_page", 50, type=int)
+        except ValueError:
+            per_page = 50
+        
+        search_term = request.values.get("search", None)
+        
+        query = Department.query
 
-@api_main.route("/catalog", methods=["GET"])
-def catalog():
-    # GET: returns available classes for a given term
-    # maybe we can add creation/deletion of classes to the tool
-    return 404
+        if(search_term):
+            search_term_like = f"%{search_term}%"
+            query = query.filter(
+                db.or_(
+                    Department.name.like(search_term_like),
+                    Department.abbreviation.like(search_term_like)
+                )
+            ).order_by(Department.name)
+
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        departments_ = pagination.items
+        total_pages = pagination.pages
+        total_departments = pagination.total
+        
+        # Return the correct page number requested, handles potential out-of-bounds from error_out=False
+        current_page = page if page <= total_pages else total_pages 
+        if(current_page < 1): current_page = 1 # Ensure page is at least 1
+
+        return(departments_, current_page, total_pages, total_departments, per_page)
+
+    def create_department(request):
+        content_type = request.headers.get("Content-Type")
+        if("application/x-www-form-urlencoded" in content_type):
+            data = request.form
+        else:
+            data = request.get_json()
+        if(data is None):
+            abort(Response("No request body.", 400))
+        
+        name = data.get("name", "").strip()
+        if(not name):
+            abort(Response("Department name is required.", 400))
+        abbreviation = data.get("abbreviation", "").strip().upper()
+        if(not abbreviation):
+            abort(Response("Department abbreviation is required.", 400))
+        if(len(abbreviation) > 7):
+             abort(Response("Abbreviation cannot be longer than 7 characters.", 400))
+
+        # Check if abbreviation already exists
+        existing_dept = Department.query.filter_by(abbreviation=abbreviation).first()
+        if(existing_dept):
+            abort(Response(f"Abbreviation '{abbreviation}' is already in use.", 409)) # 409 Conflict
+
+        new_dept = Department(
+            name=name, 
+            abbreviation=abbreviation
+        )
+        return(new_dept)
+
+    def edit_department(request):
+        content_type = request.headers.get("Content-Type")
+        if("application/x-www-form-urlencoded" in content_type):
+            data = request.form
+        else:
+            data = request.get_json()
+        if(not data):
+            abort(Response("No request body.", 400))
+        
+        department_id = data.get("department_id")
+        if(not department_id):
+            abort(Response("Department ID is required.", 400))
+        try:
+            department_id = int(department_id)
+        except ValueError:
+             abort(Response("Invalid Department ID.", 400))
+
+        target_dept = Department.query.get(department_id)
+        if(not target_dept):
+            abort(Response("Department not found.", 404))
+        
+        name = data.get("name", "").strip()
+        if(name):
+            target_dept.name = name
+        else:
+             abort(Response("Department name cannot be empty.", 400)) # Or skip update if desired
+
+        abbreviation = data.get("abbreviation", "").strip().upper()
+        if(abbreviation):
+            if len(abbreviation) > 7:
+                abort(Response("Abbreviation cannot be longer than 7 characters.", 400))
+            # Check if new abbreviation conflicts with another department
+            existing_dept = Department.query.filter(
+                Department.abbreviation == abbreviation,
+                Department.id != department_id # Exclude self
+            ).first()
+            if(existing_dept):
+                 abort(Response(f"Abbreviation '{abbreviation}' is already in use by another department.", 409))
+            target_dept.abbreviation = abbreviation
+        else:
+             abort(Response("Department abbreviation cannot be empty.", 400)) # Or skip update
+
+        return target_dept
+
+    def delete_department(request):
+        content_type = request.headers.get("Content-Type")
+        # Handle potential differences in content type for DELETE form submission
+        if("application/x-www-form-urlencoded" in content_type):
+             data = request.form
+        else:
+            data = request.get_json(silent=True)
+
+        if(data is None):
+            abort(Response("No request body.", 400))
+        
+        department_id = data.get("department_id")
+
+        if(not department_id):
+            abort(Response("Department ID is required.", 400))
+        try:
+            department_id = int(department_id)
+        except ValueError:
+             abort(Response("Invalid Department ID.", 400))
+
+        target_dept = Department.query.get(department_id)
+        if not target_dept:
+            abort(Response("Department not found.", 404))
+            
+        return target_dept
+    
+    def render_departments(departments_, current_page, total_pages, total_departments, per_page):
+        rows = []
+        for department in departments_:
+            # **Corrected actions macro call**
+            actions = render_template(
+                "macros/actions.html",
+                model=department,
+                model_type="department", # Use 'department' as the type
+                endpoint=url_for("api_main.departments") 
+            )
+            rows.append([
+                department.id,
+                department.name,
+                department.abbreviation,
+                actions  # Add the generated actions HTML
+            ])
+
+        titles = ["ID", "Name", "Abbreviation", "Actions"]
+        return(render_template(
+            "macros/departments_content.html", 
+            departments=departments_,
+            rows=rows,
+            titles=titles,
+            current_page=current_page,
+            total_pages=total_pages,
+            total_departments=total_departments,
+            items_per_page=per_page
+        ))
+
+    # --- Route Logic ---
+    accept_header = request.headers.get('Accept', '')
+    is_htmx_request = 'text/html' in accept_header
+
+    # GET Request
+    if(request.method == "GET"):
+        # No admin check needed for GET usually, maybe restrict fields later if needed
+        departments_, page, total_pages, total_departments, per_page = get_departments(request)
+        
+        if(is_htmx_request):
+            return render_departments(departments_, page, total_pages, total_departments, per_page)
+        else:
+            response = {
+                "departments": [d.to_dict() for d in departments_],
+                "current_page": page,
+                "total_pages": total_pages,
+                "total_departments": total_departments,
+                "per_page": per_page
+            }
+            return(jsonify(response))
+    
+    # Admin check for modification methods
+    if(not current_user.is_admin):
+         abort(Response("Insufficient permissions.", 403))
+
+    # POST Request (Create)
+    if(request.method == "POST"):
+        new_dept = create_department(request)
+        try:
+            db.session.add(new_dept)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            # Consider logging the error e
+            abort(Response(f"A database error occurred: {str(e)}", 500)) 
+        
+        if(is_htmx_request):
+            current_page = new_dept.id // 50 + 1
+            pagination = Department.query.paginate(page=current_page, per_page=50)
+            departments_ = pagination.items
+            total_pages = pagination.pages
+            total_departments = pagination.total
+            return(render_departments(departments_, current_page, total_pages, total_departments, 50))
+        else:
+            return(jsonify(new_dept.to_dict()), 201)
+
+    # PUT Request (Edit)
+    if(request.method == "PUT"):
+        target_dept = edit_department(request)
+        try:
+            db.session.add(target_dept) # Add works for updates too if obj is tracked
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            abort(Response(f"A database error occurred: {str(e)}", 500))
+        
+        if(is_htmx_request):
+            current_page = target_dept.id // 50 + 1
+            pagination = Department.query.paginate(page=current_page, per_page=50)
+            departments_ = pagination.items
+            total_pages = pagination.pages
+            total_departments = pagination.total
+            return(render_departments(departments_, current_page, total_pages, total_departments, 50))
+        else:
+             return jsonify(target_dept.to_dict())
+
+    # DELETE Request
+    if(request.method == "DELETE"):
+        target_dept = delete_department(request)
+        response = target_dept.to_dict()
+        try:
+            db.session.delete(target_dept)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            abort(Response(f"A database error occurred: {str(e)}", 500))
+        
+        if(is_htmx_request):
+            current_page = target_dept.id // 50 + 1
+            pagination = Department.query.paginate(page=current_page, per_page=50)
+            departments_ = pagination.items
+            total_pages = pagination.pages
+            total_departments = pagination.total
+            return(render_departments(departments_, current_page, total_pages, total_departments, 50))
+        else:
+            return(jsonify(response))

@@ -92,12 +92,18 @@ class Department(db.Model):
     name = db.Column(db.String(255))
     abbreviation = db.Column(db.String(7))
 
+    def to_dict(self):
+        return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
+
 class Term (db.Model):
     __tablename__ = "terms"
     id = db.Column(db.Integer, primary_key=True)
     index = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(255))
     abbreviation = db.Column(db.String(7))
+
+    def to_dict(self):
+        return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
 
 class Schedule(db.Model):
     __tablename__ = "schedules"
