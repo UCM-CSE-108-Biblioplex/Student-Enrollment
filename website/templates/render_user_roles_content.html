@@ -1,0 +1,10 @@
+{# website/templates/render_user_roles_content.html #}
+{% import "macros/admin/user_roles_modal_content.html" as roles_macro with context %}
+{{ roles_macro.render_content(
+    user=user,
+    current_assignments=current_assignments,
+    all_courses=all_courses,
+    assignable_roles=assignable_roles,
+    modal_content_id=modal_content_id
+   )
+}}

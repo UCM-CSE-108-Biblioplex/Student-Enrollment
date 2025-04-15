@@ -3,3 +3,5 @@
 **/.env
 **/instance/
 **/instance/*
+output.txt
+output.sh

@@ -1,0 +1,17 @@
+<div class="flex gap-4">
+    <button 
+        class="btn btn-primary" 
+        onclick="document.querySelector('#{{ model_type }}-{{ model.id }}-modal').click()">
+        Edit
+    </button>
+    <form id="{{ model_type }}-{{ model.id }}-delete">
+        <input name="{{ model_type }}_id" type="hidden" value="{{ model.id }}">
+        <button class="btn btn-danger" 
+            hx-delete="{{ endpoint }}"
+            hx-headers='{"Accept": "text/html"}' 
+            hx-target="#{{ model_type }}s-content" 
+            hx-swap="innerHTML">
+            Delete
+        </button>
+    </form>
+</div>

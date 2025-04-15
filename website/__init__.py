@@ -9,7 +9,10 @@ load_dotenv()
 
 db = SQLAlchemy()
 
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+FLASK_SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", None)
+if(FLASK_SECRET_KEY is None):
+    print("WARNING: Secret key was not set; using default value.")
+    FLASK_SECRET_KEY = "somesecretkey"
 DB_NAME = os.environ.get("DB_NAME", "database.db")
 
 def start():
@@ -25,6 +28,7 @@ def start():
     from .site_enrollment import site_enrollment
     from .site_main import site_main
     from .site_admin import site_admin
+    from .site_teacher import site_teacher
 
     app.register_blueprint(api_main, url_prefix="/api/v1")
 
@@ -32,6 +36,7 @@ def start():
     app.register_blueprint(site_enrollment, url_prefix="/enrollment")
     app.register_blueprint(site_main, url_prefix="/")
     app.register_blueprint(site_admin, url_prefix="/admin")
+    app.register_blueprint(site_teacher, url_prefix="/courses")
 
     from .models import User, Role
 
@@ -77,7 +82,7 @@ def create_database(app):
             defined_roles = defined_roles.split(",")
             for role in defined_roles:
                 new_role = Role(name=role)
-                db.session.add(new_roll)
+                db.session.add(new_role)
 
         admin_user = User(
             first_name=os.environ.get("DEFAULT_ADMIN_FIRST_NAME", "admin"),
@@ -88,7 +93,7 @@ def create_database(app):
                 os.environ.get("DEFAULT_ADMIN_PASSWORD", "password"),
                 method="pbkdf2"
             ),
-
+            is_admin=True
         )
         db.session.add(admin_user)
 

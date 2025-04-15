@@ -1,0 +1,109 @@
+{# website/templates/admin/user_roles.html #}
+{% extends "master.html" %}
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+{% from "macros/indicator.html" import htmx_indicator %}
+{# Import the content macro to reuse its structure #}
+{% import "macros/admin/user_roles_modal_content.html" as roles_modal with context %}
+
+
+{% block head %}
+<script>
+// Simplified Alpine for pagination URL updates if needed
+document.addEventListener('alpine:init', () => {
+    Alpine.data("param", () => ({
+        updateURLParam (param, value) {
+            const url = new URL (window.location.href);
+            url.searchParams.set(param, value);
+            window.history.pushState ({}, '', url);
+        }
+    }));
+
+    // Optional: Listener to re-init Alpine within the modal after HTMX swaps *inside* the modal
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        const targetId = event.detail.target.id;
+        // Check if the target is one of the modal content divs
+        if (targetId && targetId.startsWith('user-roles-modal-content-')) {
+             Alpine.initTree(event.detail.target);
+             // console.log("Alpine re-initialized for:", targetId);
+        }
+         // Check if the target is the main table container
+         if (event.detail.target.id === 'user-roles-table-container') {
+             Alpine.initTree(event.detail.target);
+             // console.log("Alpine re-initialized for main table container");
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">Manage User Roles</h1>
+
+    {# Container for the main user table and pagination #}
+    <div id="user-roles-table-container" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        {# Pagination (Top) #}
+        {{ pagination(
+            current_page=current_page,
+            total_pages=total_pages,
+            hx_target='#user-roles-table-container',
+            items_per_page=items_per_page,
+            total_items=total_users,
+            base_url=url_for('site_admin.user_roles') + "?page="
+        ) }}
+
+        {# Main User Table #}
+        {{ table("users-table", user_rows, user_titles) }}
+
+        {# Pagination (Bottom) #}
+        {{ pagination(
+            current_page=current_page,
+            total_pages=total_pages,
+            hx_target='#user-roles-table-container',
+            items_per_page=items_per_page,
+            total_items=total_users,
+            base_url=url_for('site_admin.user_roles') + "?page="
+        ) }}
+    </div>
+
+    {# --- Pre-rendered Modals --- #}
+    {% for data in users_data %} {# Loop through the data passed from the view #}
+        {% set user = data.user %}
+        {% set current_assignments = data.assignments %}
+        {% set modal_id = 'user-roles-modal-' ~ user.id %}
+        {% set modal_content_id = 'user-roles-modal-content-' ~ user.id %} {# Unique ID for content #}
+
+        {# Define the trigger (hidden span activated by the table button's onclick) #}
+        {% set trigger_html %}
+            <span id="user-roles-modal-trigger-{{ user.id }}" class="hidden"></span>
+        {% endset %}
+
+        {# Define the modal content by calling the content macro #}
+        {# Pass the unique content ID needed for HTMX targeting inside the modal #}
+        {% set content_html %}
+            <div id="{{ modal_content_id }}"> {# Wrapper div with unique ID #}
+                 {{ roles_modal.render_content(user, current_assignments, all_courses, assignable_roles, modal_content_id) }}
+            </div>
+        {% endset %}
+
+        {# Define the static footer #}
+        {% set footer_html %}
+            <button class="btn" @click="open = false">Close</button>
+        {% endset %}
+
+        {# Render the modal shell for this specific user #}
+        {{ modal_shell(
+            id=modal_id,
+            trigger_html=trigger_html,
+            title='Manage Roles for ' ~ user.first_name ~ ' ' ~ user.last_name,
+            content_html=content_html,
+            footer_html=footer_html,
+            size='lg'
+        ) }}
+    {% endfor %}
+    {# --- End Pre-rendered Modals --- #}
+
+</div>
+{% endblock %}
