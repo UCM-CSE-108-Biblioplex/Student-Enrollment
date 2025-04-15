@@ -1,0 +1,112 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/admin_tables.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">User Administration</h1>
+    
+    <div id="users-content">
+        {% include "macros/users_content.html" %}
+    </div>
+
+    {% from "macros/modal.html" import modal_shell %}
+    {% set trigger_html %}
+    <button class="btn btn-primary mb-8">Add New User</button>
+    {% endset %}
+
+    {% set content_html %}
+    <form id="user-new-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <input type="hidden" style="display: none" name="user_id" id="user-new-id">
+        <div class="form-group">
+            <label for="user-new-username">Username:</label>
+            <input class="form-input" type="text" id="user-new-username" name="username" placeholder="Username">
+        </div>
+
+        <div class="form-group">
+            <label for="user-new-first-name">First Name:</label>
+            <input class="form-input" type="text" id="user-new-first-name" name="first_name" placeholder="First Name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="user-new-middle-name">Middle Name:</label>
+            <input class="form-input" type="text" id="user-new-middle-name" name="middle_name" placeholder="Middle Name (Nullable)">
+        </div>
+
+        <div class="form-group">
+            <label for="user-new-last-name">Last Name:</label>
+            <input class="form-input" type="text" id="user-new-last-name" name="last_name" placeholder="Last Name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="user-new-email">Email:</label>
+            <input class="form-input" type="text" id="user-new-email" name="email" placeholder="Email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="user-new-password">Password:</label>
+            <input class="form-input" type="password" id="user-new-password" name="password" placeholder="Password">
+        </div>
+
+        <div class="form-group" x-data="{isOn: false}">
+            <input 
+                type="checkbox" 
+                name="is_admin" 
+                id="user-new-is-admin" 
+                class="toggle-switch-input" 
+                x-model="isOn"
+                :value="isOn"
+                tabindex="-1"
+                aria-hidden="true">
+            <button 
+                type="button" 
+                @click="isOn = !isOn; $refs.input.focus()"
+                x-ref="input"
+                role="switch" 
+                :aria-checked="isOn.toString()"
+                :class="{ 'on': isOn }"
+                class="toggle-switch-button"
+                aria-labelledby="user-new-is-admin-label">
+                <span class="toggle-switch-thumb" :class="{ 'on': isOn }"></span>
+            </button>
+        
+            <label 
+                id="user-new-is-admin-label"
+                @click="isOn = !isOn; $refs.input.focus()"
+                class="toggle-switch-label"
+                :class="{ 'on': isOn }">
+                Administrator
+            </label>
+        </div>
+              
+    </form>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    <button 
+        class="btn btn-primary" 
+        hx-post="{{ url_for('api_main.users') }}" 
+        hx-include="#user-new-form" 
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#users-content"
+        hx-swap="innerHTML"
+        @click="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Create User
+    </button> 
+    {% endset %}
+
+    {{ modal_shell(
+        id='user-modal-new',
+        trigger_html=trigger_html,
+        title='Create User',
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
+</div>
+{% endblock %}

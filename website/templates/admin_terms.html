@@ -1,0 +1,63 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/admin_tables.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">Term Administration</h1>
+    
+    <div id="terms-content">
+        {% include "macros/terms_content.html" %}
+    </div>
+
+    {% from "macros/modal.html" import modal_shell %}
+    {% set trigger_html %}
+    <button class="btn btn-primary mb-8">Add New Term</button>
+    {% endset %}
+
+    {% set content_html %}
+    <form id="term-new-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <input type="hidden" style="display: none" name="term_id" id="term-new-id">
+        <div class="form-group">
+            <label for="term-new-name">Name:</label>
+            <input class="form-input" type="text" id="term-new-name" name="name" placeholder="Term Name">
+        </div>
+        <div class="form-group">
+            <label for="term-new-abbreviation">Abbreviation:</label>
+            <input class="form-input" type="text" id="term-new-abbreviation" name="abbreviation" placeholder="Abbreviation">
+        </div>
+        <div class="form-group">
+            <label for="term-new-index">Index Number (Used for Sorting):</label>
+            <input class="form-input" type="number" id="term-new-index" name="term_index" placeholder="Term Number">
+        </div> 
+    </form>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    <button 
+        class="btn btn-primary" 
+        hx-post="{{ url_for('api_main.terms') }}" 
+        hx-include="#term-new-form" 
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#terms-content"
+        hx-swap="innerHTML"
+        @click="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Create Term
+    </button> 
+    {% endset %}
+
+    {{ modal_shell(
+        id='term-modal-new',
+        trigger_html=trigger_html,
+        title='Create Term',
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
+</div>
+{% endblock %}

@@ -6,7 +6,7 @@ UC Merced CSE 108 Lab 8 Group Project
 
 ### Student Functionality
 
-- [X] login/logout
+- [X] ~~login/logout~~
 - [ ] view classes enrolled
 - [ ] view course catalog
 - [ ] see enrollment number in a given class
@@ -14,7 +14,7 @@ UC Merced CSE 108 Lab 8 Group Project
 
 ### Teacher Functionality
 
-- [ ] login/logout
+- [X] ~~login/logout~~
 - [ ] view classes teaching
 - [ ] see students enrolled in given class
 - [ ] see grades in given class
@@ -22,6 +22,14 @@ UC Merced CSE 108 Lab 8 Group Project
 
 ### Admin Functionality
 
-- [ ] login/logout
+- [X] ~~login/logout~~
 - [ ] edit all data in database
-- [ ] Admin page (with Flask-Admin)
+    - [ ] Users (in progress)
+    - [ ] Courses
+    - [ ] Roles
+    - [ ] API Keys (Stretch Goal)
+- [ ] Admin page
+    - [ ] Users (in progress)
+    - [ ] Courses
+    - [ ] Roles
+    - [ ] API Keys (Stretch Goal)

@@ -93,6 +93,10 @@
 [x-cloak] { 
     display: none !important; 
 }
+
+[x-cloak] { 
+    display: none !important; 
+}
 /* 
 Keeping this prevents light mode from flashing
 briefly before the JavaScript can change the 
@@ -115,6 +119,7 @@ that's their fault for misconfiguring.
         --overlay: var(--mocha-overlay0);
         --accent: var(--mocha-lavender);
         --accent-hover: var(--mocha-mauve);
+
         --shadow: rgba(0, 0, 0, 0.3);
 
         --bg-primary-rgb: var(--mocha-base-rgb);
@@ -205,7 +210,7 @@ main {
     flex: 1 0 auto;
 }
 
-  /* === Layout and Containers === */
+/* === Layout and Containers === */
 .container {
     width: 100%;
     max-width: 1200px;
@@ -224,6 +229,7 @@ main {
 .container-xl {
     max-width: 1280px;
 }
+  
   
 /* === Navigation Components === */
 @keyframes navbar-fade-in {
@@ -382,6 +388,19 @@ a.topnav-link:hover, div.topnav-dropdown:hover button.topnav-dropbtn {
 .btn-primary:hover {
     background-color: var(--accent-hover);
 }
+.btn-danger {
+    background-color: var(--latte-red);
+    color: var(--mocha-text)
+}
+html.dark-theme .btn-danger {
+    background-color: var(--mocha-red);
+    color: var(--latte-text);
+}
+@media (prefers-color-scheme: dark) {
+    .btn-danger {
+        background-color: var(--mocha-red);
+    }
+}
 
 /* === Form elements === */
 .form-group {
@@ -538,163 +557,6 @@ html.dark-theme .password-strength-bar.strong {
 html.dark-theme .password-strength-bar.very-strong {
     background-color: var(--mocha-mauve);
 }
-
-/* === Form elements === */
-.form-group {
-    margin-bottom: var(--space-4);
-}
-.form-label {
-    display: block;
-    margin-bottom: var(--space-2);
-    font-weight: 500;
-}
-.form-input,
-.form-select,
-.form-textarea {
-    width: 100%;
-    padding: var(--space-3);
-    border: 1px solid var(--surface-0);
-    border-radius: var(--radius-md);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: inherit;
-    font-size: 1rem;
-    transition: border-color var(--transition-fast) var(--ease-out),
-        box-shadow var(--transition-fast) var(--ease-out);
-}
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(var(--accent), 0.25);
-}
-.form-input:user-invalid,
-.form-select:user-invalid,
-.form-textarea:user-invalid {
-  border-color: var(--latte-red);
-  /* color: var(--mocha-text) */
-}
-html.dark-theme .form-input:user-invalid,
-html.dark-theme .form-select:user-invalid,
-html.dark-theme .form-textarea:user-invalid {
-  border-color: var(--mocha-red);
-  /* color: var(--latte-text) */
-}
-.form-invalid-text {
-  color: var(--latte-red);
-}
-html.dark-theme .form-invalid-text {
-  color: var(--mocha-red);
-}
-/* Username validation styles */
-.form-warning-text {
-  color: #cc8800;
-}
-html.dark-theme .form-warning-text {
-  color: #ffc640;
-}
-.form-valid-text {
-  color: var(--latte-green);
-}
-html.dark-theme .form-valid-text {
-  color: var(--mocha-green);
-}
-/* Input border colors for validation states */
-input#username {
-  transition: border-color var(--transition-fast) var(--ease-out);
-}
-input#username:focus {
-  border-color: var(--accent);
-}
-/* Warning state (too short) */
-input#username.warning {
-  border-color: #cc8800;
-}
-html.dark-theme input#username.warning {
-  border-color: #ffc640;
-}
-/* Checking state (loading) */
-input#username.checking {
-  border-color: var(--accent);
-}
-/* Invalid state (taken) */
-input#username.invalid {
-  border-color: var(--latte-red);
-}
-html.dark-theme input#username.invalid {
-  border-color: var(--mocha-red);
-}
-/* Valid state (available) */
-input#username.valid {
-  border-color: var(--latte-green);
-}
-html.dark-theme input#username.valid {
-  border-color: var(--mocha-green);
-}
-/* Username validation loader/throbber */
-.relative {
-  position: relative;
-}
-.username-loader {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-  border-top-color: transparent;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  0% { transform: translateY(-50%) rotate(0deg); }
-  100% { transform: translateY(-50%) rotate(360deg); }
-}
-/* Password strength styles */
-.password-strength-container {
-  width: 100%;
-  background-color: var(--surface-0);
-  border-radius: var(--radius-md);
-  margin-top: var(--space-2);
-  overflow: hidden;
-}
-.password-strength-bar {
-  height: 8px;
-  border-radius: var(--radius-md);
-  transition: width var(--transition-fast) var(--ease-out);
-}
-.password-strength-label {
-  display: block;
-  text-align: center;
-  padding: var(--space-1);
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-/* Strength levels */
-.password-strength-bar.weak {
-  background-color: var(--latte-red);
-}
-html.dark-theme .password-strength-bar.weak {
-  background-color: var(--mocha-red);
-}
-.password-strength-bar.medium {
-  background-color: #f0ad4e; /* Example amber color */
-}
-.password-strength-bar.strong {
-  background-color: var(--latte-green);
-}
-html.dark-theme .password-strength-bar.strong {
-  background-color: var(--mocha-green);
-}
-.password-strength-bar.very-strong {
-  background-color: var(--latte-mauve);
-}
-html.dark-theme .password-strength-bar.very-strong {
-  background-color: var(--mocha-mauve);
-}
-
 /* === Footer Components === */
 .site-footer {
     flex-shrink: 0;
@@ -850,7 +712,6 @@ html.dark-theme .password-strength-bar.very-strong {
 .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 
-/* Add these to your utility classes section */
 .disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -997,19 +858,19 @@ html.dark-theme .password-strength-bar.very-strong {
 }
 
 .slider-container {
-  position: relative;
-  overflow: visible; 
-  height: 300px;     
-  margin-top: var(--space-8);
-  margin-bottom: -2rem;
+    position: relative;
+    overflow: visible; 
+    height: 300px;     
+    margin-top: var(--space-8);
+    margin-bottom: -2rem;
 }
 
 .card-slider {
-  position: absolute;
-  left: calc(48.5% - 110px);
-  top: 0;
-  transition: 0.5s;
-  text-align: justify;
+    position: absolute;
+    left: calc(48.5% - 110px);
+    top: 0;
+    transition: 0.5s;
+    text-align: justify;
 }
 
 #next, #prev{
@@ -1025,6 +886,6 @@ html.dark-theme .password-strength-bar.very-strong {
 }
 
 #next{
-  left: unset; 
-  right: 210px; 
+    left: unset; 
+    right: 210px; 
 }
