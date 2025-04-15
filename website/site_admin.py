@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, abort, Response, flash, r
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, Course
+from .models import User, Course, Term
 
 site_admin = Blueprint("site_admin", __name__)
 
@@ -102,13 +102,45 @@ def get_courses(request):
     # return
     return(courses, page, total_pages, total_courses, per_page)
 
+def get_terms(request):
+    try:
+        page = request.args.get("page", 1)
+        page = int(page)
+    except:
+        page = 1
+    try:
+        per_page = request.args.get("per_page", 50)
+        per_page = int(per_page)
+    except:
+        per_page = 50
+    
+    # get matching students
+    name = request.args.get("name", None)
+    
+    if(name):
+        name = unquote(name)
+        pagination = User.query.filter(
+            Term.name.like(f"%{name}%")
+        ).paginate(
+            page=page,
+            per_page=per_page
+        )
+    else:
+        pagination = Term.query.paginate(page=page, per_page=per_page)
+    
+    terms = pagination.items
+    total_pages = pagination.pages
+    total_terms = pagination.total
+    
+    return terms, page, total_pages, total_terms, per_page
+
 @site_admin.route("/")
 def admin_panel():
     return(render_template("admin_panel.html"))
 
 @site_admin.route("/Users")
 def users():
-    if not current_user.is_admin:
+    if(not current_user.is_authenticated or not current_user.is_admin):
         flash("You don't have permission to access this page.", "error")
         return redirect(url_for('site_main.home'))
     
@@ -125,14 +157,19 @@ def users():
 
     rows = []
     for user in users:
-        action_button = f"""<button class="btn btn-primary" onclick="document.getElementById('user-{user.id}-modal').click()">Edit</button>"""
+        actions = render_template(
+            "macros/actions.html",
+            model=user,
+            endpoint=url_for("api_main.users"),
+            model_type="user"
+        )
         rows.append([
             user.id,
             user.username,
             parse_name(user),
             user.email,
             "Yes" if user.is_admin else "No",
-            action_button
+            actions
         ])
 
     titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
@@ -150,14 +187,19 @@ def users():
 
 @site_admin.route("/Courses")
 def courses():
-    if(not current_user.is_admin):
+    if(not current_user.is_authenticated or not current_user.is_admin):
         flash("You don't have permission to access this page.", "error")
         return(Redirect(url_for("site_main.home")))
     
     courses, page, total_pages, total_courses, per_page = get_courses(request)
     rows = []
     for course in courses:
-        action_button = f"""<button class="btn btn-primary" onclick="document.querySelector('#course-{course.id}-modal').click()">Edit</button>"""
+        actions = render_template(
+            "macros/actions.html",
+            model=course,
+            endpoint=url_for("api_main.courses"),
+            model_type="course"
+        )
         rows.append([
             course.id,
             course.term,
@@ -166,7 +208,7 @@ def courses():
             course.number,
             course.session,
             course.units,
-            action_button
+            actions
         ])
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
 
@@ -180,5 +222,52 @@ def courses():
         total_courses=total_courses,
         items_per_page=per_page,
         depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
-        terms=["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", "F12", "S13", "Su13", "F13", "S14", "Su14", "F14", "S15", "Su15", "F15", "S16", "Su16", "F16", "S17", "Su17", "F17", "S18", "Su18", "F18", "S19", "Su19", "F19", "S20", "Su20", "F20", "S21", "Su21", "F21", "S22", "Su22", "F22", "S23", "Su23", "F23", "S24", "Su24", "F24", "S25", "Su25", "F25"]
+        terms=[term.abbreviation for term in Term.query.all()]
     ))
+
+@site_admin.route("/Terms")
+def terms():
+    if(not current_user.is_authenticated or not current_user.is_admin):
+        flash("You don't have permission to access this page.", "error")
+        return(Redirect(url_for("site_main.home")))
+    
+    terms_, page, total_pages, total_terms, per_page = get_terms(request)
+    rows = []
+
+    for term in terms_:
+        actions = render_template(
+            "macros/actions.html",
+            model=term,
+            endpoint=url_for("api_main.terms"),
+            model_type="term"
+        )
+        rows.append([
+            term.index,
+            term.id,
+            term.name,
+            term.abbreviation,
+            actions
+        ])
+    
+    titles = ["Index", "ID", "Name", "Abbreviation", "Actions"]
+
+    return(render_template(
+        "admin_terms.html",
+        terms=terms_,
+        rows=rows,
+        titles=titles,
+        current_page=page,
+        total_pages=total_pages,
+        total_terms=total_terms,
+        items_per_page=per_page,
+    ))
+
+@site_admin.route("/Departments")
+def departments():
+    if(not current_user.is_admin):
+        flash("You don't have permission to access this page.", "error")
+        return(Redirect(url_for("site_main.home")))
+    
+    departments_, page, total_pages, total_terms, per_page = get_terms(request)
+    rows = []
+    accept_header = '{}'

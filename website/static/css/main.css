@@ -120,6 +120,8 @@ that's their fault for misconfiguring.
         --accent: var(--mocha-lavender);
         --accent-hover: var(--mocha-mauve);
 
+        --shadow: rgba(0, 0, 0, 0.3);
+
         --bg-primary-rgb: var(--mocha-base-rgb);
         --bg-secondary-rgb: var(--mocha-mantle-rgb);
         --surface-0-rgb: var(--mocha-surface0-rgb);
@@ -261,7 +263,6 @@ nav.top-navbar {
     transition: background-color var(--transition-normal) var(--ease-out),
         backdrop-filter var(--transition-normal) var(--ease-out);
     animation: navbar-fade-in 0.5s ease-out forwards;
-    display: flex;
 }
 /* Active navbar item */
 a.topnav-link.active, .topnav-dropdown.active .topnav-dropbtn {
@@ -278,7 +279,6 @@ a.topnav-link {
     transition: background-color var(--transition-fast) var(--ease-out);
     border-radius: var(--radius-md);
     margin: var(--space-1);
-    display: flex;
 }
 /* Dropdown button */
 .topnav-dropdown .topnav-dropbtn {
@@ -331,7 +331,6 @@ a.topnav-link:hover, div.topnav-dropdown:hover button.topnav-dropbtn {
 .topnav-dropdown:hover .dropdown-content {
     display: block;
 }
-  
   
 /* === Content Components === */
 .card {
@@ -391,9 +390,11 @@ a.topnav-link:hover, div.topnav-dropdown:hover button.topnav-dropbtn {
 }
 .btn-danger {
     background-color: var(--latte-red);
+    color: var(--mocha-text)
 }
 html.dark-theme .btn-danger {
     background-color: var(--mocha-red);
+    color: var(--latte-text);
 }
 @media (prefers-color-scheme: dark) {
     .btn-danger {
@@ -696,11 +697,6 @@ html.dark-theme .password-strength-bar.very-strong {
 .w-56 { width: 14rem; }
 .w-64 { width: 16rem; }
 
-.w-auto { width: auto; }
-.w-48 { width: 12rem; }
-.w-56 { width: 14rem; }
-.w-64 { width: 16rem; }
-
 .text-center { text-align: center; }
 .text-right { text-align: right; }
 
@@ -716,22 +712,6 @@ html.dark-theme .password-strength-bar.very-strong {
 .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 
-/* Add these to your utility classes section */
-.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-/* For pagination specifically */
-.pagination-link.disabled {
-    color: var(--text-secondary);
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-/* Add these to your utility classes section */
 .disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -875,4 +855,37 @@ html.dark-theme .password-strength-bar.very-strong {
 }
 .radiogroup-item.disabled .radiogroup-input::before {
     background-color: var(--overlay);
+}
+
+.slider-container {
+    position: relative;
+    overflow: visible; 
+    height: 300px;     
+    margin-top: var(--space-8);
+    margin-bottom: -2rem;
+}
+
+.card-slider {
+    position: absolute;
+    left: calc(48.5% - 110px);
+    top: 0;
+    transition: 0.5s;
+    text-align: justify;
+}
+
+#next, #prev{
+    position: absolute; 
+    margin-top: -245px;
+    color: white; 
+    background-color: transparent;
+    border: none; 
+    font-size: xx-large; 
+    font-family: inherit;
+    font-weight: bold; 
+    left:250px; 
+}
+
+#next{
+    left: unset; 
+    right: 210px; 
 }
