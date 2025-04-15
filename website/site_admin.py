@@ -246,6 +246,9 @@ def courses():
         ])
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
 
+    depts = [d for d in Department.query.order_by(Department.abbreviation).all()]
+    terms = [t for t in Term.query.order_by(Term.index).all()]
+
     return(render_template(
         "admin_courses.html",
         courses=courses,
@@ -255,8 +258,8 @@ def courses():
         total_pages=total_pages,
         total_courses=total_courses,
         items_per_page=per_page,
-        depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
-        terms=[term.abbreviation for term in Term.query.all()]
+        depts=depts,
+        terms=terms
     ))
 
 @site_admin.route("/Terms")

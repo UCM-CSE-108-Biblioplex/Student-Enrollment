@@ -20,7 +20,7 @@
 	<div class="topnav-dropdown">
 		<button class="topnav-dropbtn">Enrollment<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
 		<div class="dropdown-content">
-			<a class="topnav-link"  href="{{ url_for('site_enrollment.enroll_term', term='S25') }}"><span>Enroll in Class</span></a>
+			<a class="topnav-link" href="{{ url_for('site_enrollment.enroll_term', term='S25') }}"><span>Enroll in Class</span></a>
 			<a class="topnav-link" href="{{ url_for('site_enrollment.catalog_term', term='S25') }}"><span>Course Catalog</span></a>
 			<a class="topnav-link" href="{{ url_for('site_enrollment.classes_term', term='S25') }}"><span>Course Schedule</span></a>
 		</div>
@@ -32,9 +32,10 @@
 	<div class="topnav-dropdown">
 		<button class="topnav-dropbtn">Admin Panel</button>
 		<div class="dropdown-content">
-			<a class="topnav-link"  href="{{ url_for('site_admin.users') }}"><span>Edit Users</span></a>
+			<a class="topnav-link" href="{{ url_for('site_admin.users') }}"><span>Edit Users</span></a>
 			<a class="topnav-link" href="{{ url_for('site_admin.courses') }}"><span>Edit Courses</span></a>
 			<a class="topnav-link" href="{{ url_for('site_admin.terms') }}"><span>Edit Terms</span></a>
+			<a class="topnav-link" href="{{ url_for('site_admin.departments') }}"><span>Edit Departments</span></a>
 		</div>
 	</div>
 	{% endif %}

@@ -591,10 +591,9 @@ def courses():
         for course in courses_:
             actions = render_template(
                 "macros/actions.html",
-                term=term,
+                model=course,
                 endpoint=url_for("api_main.terms"),
-                hx_target="#terms-content",
-                field_name="term_id"
+                model_type="term"
             )
             rows.append([
                 course.id,
@@ -765,8 +764,8 @@ def terms():
         if(not term_abbreviation):
             abort(Response("Term abbreviation is required"))
         try:
-            term_index = int(data.get("index", ""))
-        except:
+            term_index = int(data.get("term_index", ""))
+        except Exception as e:
             term_index = None
         session = data.get("session", "")
         
@@ -806,11 +805,14 @@ def terms():
         if(term_abbreviation):
             target_term.abbreviation = term_abbreviation
         try:
-            term_index = int(data.get("index", ""))
+            term_index = int(data.get("term_index", ""))
         except:
             term_index = None
         if(term_index):
-            target_term.index = term_index
+            try:
+                target_term.index = int(term_index)
+            except:
+                abort(Response("Invalid term index.", 400))
         
 
         return(target_term)
@@ -840,13 +842,14 @@ def terms():
         return(target_term)
     
     def render_terms(terms_, current_page, total_pages, total_terms, per_page):
-        titles = ["Index", "ID", "Name", "Abbreviation", "Actions", ""]
+        titles = ["Index", "ID", "Name", "Abbreviation", "Actions"]
         rows = []
 
         for term in terms_:
             actions = render_template(
                 "macros/actions.html",
-                term=term,
+                model=term,
+                model_type="term",
                 endpoint=url_for("api_main.terms"),
                 field_name="term_id"
             )

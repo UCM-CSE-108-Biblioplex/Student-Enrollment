@@ -26,7 +26,7 @@
             <label for="course-new-term">Term:</label>
             <select class="form-select" id="course-new-term" name="term">
                 {% for term in terms %}
-                <option>{{ term }}</option>
+                <option value="{{ term.abbreviation }}">{{ term.name }} ({{ term.abbreviation }})</option>
                 {% endfor %}
             </select>
         </div>
@@ -40,7 +40,7 @@
             <label for="course-new-dept">Department:</label>
              <select class="form-select" id="course-new-dept" name="dept">
                 {% for dept in depts %}
-                <option>{{ dept }}</option>
+                <option value="{{ dept.abbreviation }}">{{ dept.name }} ({{ dept.abbreviation }})</option>
                 {% endfor %}
              </select>
         </div>
