@@ -17,10 +17,13 @@ UC Merced CSE 108 Lab 8 Group Project
     - If we mess this up, then that's pretty tragic
 - [X] ~~Admin CRUD Functions~~ (80pts)
     - Admins can perform CRUD on all required Models
-- [ ] Teacher functions (80pts)
-    - WIP
+- [X] Teacher functions (80pts)
+    - [X] ~~Login/Logout~~ (20pts)
+    - [X] ~~See Classes I teach~~ (20pts)
+    - [X] ~~See all students enrolled & grades~~ (20pts)
+    - [X] ~~edit grades for students~ (20pts)
 
-Current est. Score: 120/300 (40%)
+Current est. Score: 200/300 (66.67%)
 
 ### Student Functionality
 
