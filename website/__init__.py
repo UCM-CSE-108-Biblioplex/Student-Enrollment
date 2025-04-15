@@ -80,7 +80,7 @@ def create_database(app):
             defined_roles = defined_roles.split(",")
             for role in defined_roles:
                 new_role = Role(name=role)
-                db.session.add(new_roll)
+                db.session.add(new_role)
 
         admin_user = User(
             first_name=os.environ.get("DEFAULT_ADMIN_FIRST_NAME", "admin"),
