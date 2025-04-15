@@ -228,7 +228,7 @@ def users():
         rows = []
         for user in users_:
             actions = render_template(
-                "macros/actions.html",
+                "macros/admin/actions.html",
                 model=user,
                 endpoint=url_for("api_main.users"),
                 model_type="user"
@@ -244,7 +244,7 @@ def users():
 
         titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
         return render_template(
-            "macros/users_content.html", 
+            "macros/admin/users_content.html", 
             users=users_,
             rows=rows,
             titles=titles,
@@ -590,7 +590,7 @@ def courses():
 
         for course in courses_:
             actions = render_template(
-                "macros/actions.html",
+                "macros/admin/actions.html",
                 model=course,
                 endpoint=url_for("api_main.courses"),
                 model_type="course"
@@ -608,7 +608,7 @@ def courses():
         depts = [d for d in Department.query.all()]
         terms = [t for t in Term.query.all()]
         return(render_template(
-            "macros/courses_content.html",
+            "macros/admin/courses_content.html",
             courses=courses_,
             rows=rows,
             titles=titles,
@@ -847,7 +847,7 @@ def terms():
 
         for term in terms_:
             actions = render_template(
-                "macros/actions.html",
+                "macros/admin/actions.html",
                 model=term,
                 model_type="term",
                 endpoint=url_for("api_main.terms"),
@@ -861,7 +861,7 @@ def terms():
                 actions
             ])
         return(render_template(
-            "macros/terms_content.html",
+            "macros/admin/terms_content.html",
             terms=terms_,
             rows=rows,
             titles=titles,
@@ -1097,7 +1097,7 @@ def departments():
         for department in departments_:
             # **Corrected actions macro call**
             actions = render_template(
-                "macros/actions.html",
+                "macros/admin/actions.html",
                 model=department,
                 model_type="department", # Use 'department' as the type
                 endpoint=url_for("api_main.departments") 
@@ -1111,7 +1111,7 @@ def departments():
 
         titles = ["ID", "Name", "Abbreviation", "Actions"]
         return(render_template(
-            "macros/departments_content.html", 
+            "macros/admin/departments_content.html", 
             departments=departments_,
             rows=rows,
             titles=titles,
