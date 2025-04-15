@@ -106,7 +106,6 @@ def create_user(request):
         is_admin = is_admin.lower() in ["true", "on", "yes", "1"]
 
     first_name = data.get("first_name", None)
-    print(data)
     if(not first_name):
         abort(Response("First name is required.", 400))
     middle_name = data.get("middle_name", "")
@@ -623,7 +622,6 @@ def courses():
             return(jsonify(response))
     
     if(request.method == "POST"):
-        print("post")
         if(not g.user.is_admin):
             abort(Response("Insufficient permissions.", 403))
         new_course = create_course(request)
