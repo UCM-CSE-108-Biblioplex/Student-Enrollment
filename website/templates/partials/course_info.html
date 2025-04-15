@@ -1,0 +1,24 @@
+{% from "macros/modal.html" import modal_shell %}
+
+{% set trigger_html %}
+  <a class="text-primary underline cursor-pointer">{{ course.name }}</a>
+{% endset %}
+
+{% set content_html %}
+  <p><strong>Course Name:</strong> {{ course.name }}</p>
+  <p><strong>Department:</strong> {{ course.dept }}</p>
+  <p><strong>Number:</strong> {{ course.number }}</p>
+  <p><strong>Units:</strong> {{ course.units }}</p>
+{% endset %}
+
+{% set footer_html %}
+  <button class="btn btn-secondary" @click="open = false">Close</button>
+{% endset %}
+
+{{ modal_shell(
+    id='modal-' ~ (course.id or loop.index),
+    trigger_html=trigger_html,
+    title='Course Info',
+    content_html=content_html,
+    footer_html=footer_html
+) }}

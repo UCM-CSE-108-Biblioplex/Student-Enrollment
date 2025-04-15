@@ -14,7 +14,11 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(255), nullable=False, info={"min_length": 4})
     api_keys = db.relationship("APIKey", backref="user")
     courses = db.relationship(
-        "Course", secondary="roles", back_populates="users"
+        "Course",
+        secondary= "roles",
+        back_populates="users",
+        primaryjoin="User.id == roles.c.user_id",
+        secondaryjoin="Course.id == roles.c.course_id"
     )
 
     def to_dict(self):
