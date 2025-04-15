@@ -417,26 +417,89 @@ def add_user_role(user_id):
         return jsonify({"message": f"Role assignment {operation_type}.", "user_id": user_id, "assignments": formatted_assignments}), 200
 
 @api_main.route("/users/<int:user_id>/roles/<int:course_id>", methods=["DELETE"])
-@requires_authentication
+@requires_authentication # g.user is set here (either by session or API key)
 def remove_user_role(user_id, course_id):
-    if not g.user.is_admin: abort(Response("Insufficient permissions.", 403))
+    if not g.user.is_admin and g.user.id != user_id:
+        abort(Response("Insufficient permissions.", 403))
+    
+    def generate_instructor_rows(instructor_user, courses):
+        rows = []
+        for course in courses:
+            resign_button = f"""
+            <button class="btn btn-danger btn-sm"
+                    hx-delete="{url_for('api_main.remove_user_role', user_id=instructor_user.id, course_id=course.id)}"
+                    hx-target="#courses-content"
+                    hx-swap="innerHTML"
+                    hx-headers='{{"Accept": "text/html"}}'
+                    hx-confirm="Are you sure you want to resign from {course.dept} {course.number}?">
+                Resign
+            </button>
+            """
+            rows.append([
+                course.id,
+                course.name,
+                course.dept,
+                course.number,
+                course.session,
+                course.units,
+                resign_button # Add the button HTML
+            ])
+        return rows
+
     target_user = User.query.get_or_404(user_id)
-    # ... (fetch assignment_to_delete, handle not found, database logic - unchanged) ...
-    assignment_to_delete = db.session.query(Course, Role).join(roles, Course.id == roles.c.course_id).join(Role, Role.id == roles.c.role_id).filter(roles.c.user_id == user_id, roles.c.course_id == course_id).first()
+
+    # Fetch details of the assignment *before* deleting
+    assignment_to_delete = db.session.query(
+        Course, Role
+    ).join(
+        roles, Course.id == roles.c.course_id
+    ).join(
+        Role, Role.id == roles.c.role_id
+    ).filter(
+        roles.c.user_id == user_id,
+        roles.c.course_id == course_id
+    ).first()
+
     if not assignment_to_delete:
-         accept_header = request.headers.get('Accept', '')
-         is_htmx_request = 'text/html' in accept_header
-         if is_htmx_request:
-             current_assignments = target_user.get_role_assignments()
-             all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
-             assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
-             modal_content_id = f'user-roles-modal-content-{user_id}'
-             return render_template("render_macro.html", macro_name="macros/admin/user_roles_modal_content.render_content", user=target_user, current_assignments=current_assignments, all_courses=all_courses, assignable_roles=assignable_roles, modal_content_id=modal_content_id)
-         else:
-             return jsonify({"message": "Assignment not found or already deleted."}), 200
+        # Assignment not found, handle idempotency
+        accept_header = request.headers.get('Accept', '')
+        is_htmx_request = 'text/html' in accept_header
+        if is_htmx_request:
+            # Determine if the request came from the instructor view or admin view
+            # For simplicity, we'll assume if it's self-removal, it's instructor view
+            if g.user.id == user_id:
+                 # Re-render instructor content
+                 instructor_role = Role.query.filter_by(name="Instructor").first()
+                 courses = target_user.get_courses_role(instructor_role)
+                 # Regenerate rows (implementation detail below)
+                 rows = generate_instructor_rows(target_user, courses)
+                 titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+                 # Note: Pagination might be complex here, maybe omit for simplicity on delete?
+                 return render_template(
+                     "macros/instructor/courses_content.html",
+                     courses=courses, rows=rows, titles=titles,
+                     current_page=1, total_pages=1, total_courses=len(courses), items_per_page=len(courses) # Simplified pagination
+                 )
+            else:
+                 # Re-render admin modal content
+                 current_assignments = target_user.get_role_assignments()
+                 all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
+                 assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
+                 modal_content_id = f'user-roles-modal-content-{user_id}'
+                 return render_template("render_macro.html", macro_name="macros/admin/user_roles_modal_content.render_content", user=target_user, current_assignments=current_assignments, all_courses=all_courses, assignable_roles=assignable_roles, modal_content_id=modal_content_id)
+        else:
+            return jsonify({"message": "Assignment not found or already deleted."}), 200 # Or 404
+
     deleted_course, deleted_role = assignment_to_delete
+
+    if g.user.id == user_id and deleted_role.name != "Instructor":
+         abort(Response("Instructors can only resign from 'Instructor' roles via this action.", 403))
+
     try:
-        stmt = delete(roles).where(roles.c.user_id == user_id, roles.c.course_id == course_id)
+        stmt = delete(roles).where(
+            roles.c.user_id == user_id,
+            roles.c.course_id == course_id
+        )
         result = db.session.execute(stmt)
         db.session.commit()
     except Exception as e:
@@ -448,28 +511,47 @@ def remove_user_role(user_id, course_id):
     is_htmx_request = 'text/html' in accept_header
 
     if is_htmx_request:
-        db.session.refresh(target_user)
-        current_assignments = target_user.get_role_assignments()
-        all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
-        assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
-        modal_content_id = f'user-roles-modal-content-{user_id}'
-        # Use the helper template to render just the macro's output
-        return render_template(
-             "render_macro.html",
-             macro_name="macros/admin/user_roles_modal_content.render_content", # Correct path format
-             user=target_user,
-             current_assignments=current_assignments,
-             all_courses=all_courses,
-             assignable_roles=assignable_roles,
-             modal_content_id=modal_content_id
-        )
+        db.session.refresh(target_user) # Refresh user state
+
+        # Check if the request likely came from the instructor view (self-removal)
+        if g.user.id == user_id:
+            # Re-render instructor content
+            instructor_role = Role.query.filter_by(name="Instructor").first()
+            courses = target_user.get_courses_role(instructor_role)
+            rows = generate_instructor_rows(target_user, courses) # Use helper
+            titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+            # Simplified pagination after delete for instructor view
+            return render_template(
+                "macros/instructor/courses_content.html",
+                courses=courses, rows=rows, titles=titles,
+                current_page=1, total_pages=1, total_courses=len(courses), items_per_page=len(courses)
+            )
+        else:
+            # Re-render admin modal content (as before)
+            current_assignments = target_user.get_role_assignments()
+            all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
+            assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
+            modal_content_id = f'user-roles-modal-content-{user_id}'
+            return render_template(
+                 "render_macro.html",
+                 macro_name="macros/admin/user_roles_modal_content.render_content",
+                 user=target_user,
+                 current_assignments=current_assignments,
+                 all_courses=all_courses,
+                 assignable_roles=assignable_roles,
+                 modal_content_id=modal_content_id
+            )
     else:
-        # Return JSON
+        # Return JSON (unchanged)
         if not hasattr(Role, 'to_dict'):
              def role_to_dict(self): return {'id': self.id, 'name': self.name}
              Role.to_dict = role_to_dict
         formatted_deleted = {"course": deleted_course.to_dict(), "role": deleted_role.to_dict()}
-        return jsonify({"message": "Role assignment removed.", "user_id": user_id, "deleted_assignment": formatted_deleted}), 200
+        return jsonify({
+            "message": "Role assignment removed.",
+            "user_id": user_id,
+            "deleted_assignment": formatted_deleted
+        }), 200
 
 @api_main.route("/courses", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication

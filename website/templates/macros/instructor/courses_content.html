@@ -1,6 +1,7 @@
+{# website/templates/macros/instructor/courses_content.html #}
 {% from "macros/table.html" import table %}
 {% from "macros/pagination.html" import pagination %}
-{% from "macros/modal.html" import modal_shell %}
+{% from "macros/indicator.html" import htmx_indicator %} {# Import indicator if needed #}
 
 {# Pagination component #}
 {{ pagination(
@@ -12,8 +13,12 @@
     base_url="/api/v1/courses?page="
 ) }}
 
-{# Table component #}
-{{ table("courses-table", rows, titles) }}
+{# Table component - Renders rows passed from the view, including the button #}
+{% if courses %}
+    {{ table("instructor-courses-table", rows, titles, variant="striped") }}
+{% else %}
+    <p class="p-4 text-center text-secondary">You are not currently assigned as an instructor for any courses.</p>
+{% endif %}
 
 {# Pagination component #}
 {{ pagination(

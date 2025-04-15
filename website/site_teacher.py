@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash as gph
 from werkzeug.security import check_password_hash as cph
 from flask import Blueprint, render_template, request, abort, Response, flash, redirect, url_for
-from flask_login import current_user
+from flask_login import current_user, login_required
 from urllib.parse import unquote
 from functools import wraps
 from .models import User, Course, Role
@@ -71,42 +71,58 @@ def get_courses(request):
     return(courses, page, total_pages, total_courses, per_page)
 
 @site_teacher.route("/Courses")
+@login_required # Ensure only logged-in users can access
 def courses():
-    
-    courses, page, total_pages, total_courses, per_page = get_courses(request)
-    rows = []
-
     instructor_role = Role.query.filter_by(name="Instructor").first()
-    courses = current_user.get_courses_role(instructor_role)
+    if not instructor_role:
+        flash("Instructor role not found in database.", "error")
+        return redirect(url_for('site_main.home'))
+    
+    def generate_instructor_rows(instructor_user, courses):
+        rows = []
+        for course in courses:
+            resign_button = f"""
+            <button class="btn btn-danger btn-sm"
+                    hx-delete="{url_for('api_main.remove_user_role', user_id=instructor_user.id, course_id=course.id)}"
+                    hx-target="#courses-content"
+                    hx-swap="innerHTML"
+                    hx-headers='{{"Accept": "text/html"}}'
+                    hx-confirm="Are you sure you want to resign from {course.dept} {course.number}?">
+                Resign
+            </button>
+            """
+            rows.append([
+                course.id,
+                course.name,
+                course.dept,
+                course.number,
+                course.session,
+                course.units,
+                resign_button # Add the button HTML
+            ])
+        return rows
 
-    for course in courses:
-        rows.append([
-            course.id,
-            course.name,
-            course.dept,
-            course.number,
-            course.session,
-            course.units
-        ])
+
+    instructor_courses = current_user.get_courses_role(instructor_role)
+
+    # Use the helper function to generate rows with the resign button
+    rows = generate_instructor_rows(current_user, instructor_courses)
 
     titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
 
-    return(render_template(
+    # Simplified pagination data since we're showing all courses for the instructor
+    current_page = 1
+    total_courses = len(instructor_courses)
+    items_per_page = total_courses if total_courses > 0 else 1 # Avoid division by zero
+    total_pages = 1
+
+    return render_template(
         "instructor/courses.html",
-        courses=courses,
+        courses=instructor_courses, # Pass the course objects
         rows=rows,
         titles=titles,
-        current_page=page,
+        current_page=current_page,
         total_pages=total_pages,
         total_courses=total_courses,
-        items_per_page=per_page
-    ))
-
-@site_teacher.route("/Courses/<string:course_id>")
-def course(course_id):
-    course = Course.query.get_or_404(course_id)
-
-    return(render_template(
-        "instructor/course.html",
-        course=course
-    ))
+        items_per_page=items_per_page
+    )
