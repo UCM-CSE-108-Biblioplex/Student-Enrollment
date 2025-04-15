@@ -28,6 +28,7 @@ def start():
     from .site_enrollment import site_enrollment
     from .site_main import site_main
     from .site_admin import site_admin
+    from .site_teacher import site_teacher
 
     app.register_blueprint(api_main, url_prefix="/api/v1")
 
@@ -35,6 +36,7 @@ def start():
     app.register_blueprint(site_enrollment, url_prefix="/enrollment")
     app.register_blueprint(site_main, url_prefix="/")
     app.register_blueprint(site_admin, url_prefix="/admin")
+    app.register_blueprint(site_teacher, url_prefix="/courses")
 
     from .models import User, Role
 

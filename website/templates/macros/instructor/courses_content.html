@@ -1,0 +1,26 @@
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#courses-content',
+    items_per_page=items_per_page,
+    total_items=total_courses,
+    base_url="/api/v1/courses?page="
+) }}
+
+{# Table component #}
+{{ table("courses-table", rows, titles) }}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#courses-content',
+    items_per_page=items_per_page,
+    total_items=total_courses,
+    base_url="/api/v1/courses?page="
+) }}

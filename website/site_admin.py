@@ -171,7 +171,7 @@ def get_departments(request):
 
 @site_admin.route("/")
 def admin_panel():
-    return(render_template("admin_panel.html"))
+    return(render_template("admin/panel.html"))
 
 @site_admin.route("/Users")
 def users():
@@ -193,7 +193,7 @@ def users():
     rows = []
     for user in users:
         actions = render_template(
-            "macros/actions.html",
+            "macros/admin/actions.html",
             model=user,
             endpoint=url_for("api_main.users"),
             model_type="user"
@@ -210,7 +210,7 @@ def users():
     titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
     
     return render_template(
-        "admin_users.html", 
+        "admin/users.html", 
         users=users,
         rows=rows,
         titles=titles,
@@ -230,7 +230,7 @@ def courses():
     rows = []
     for course in courses:
         actions = render_template(
-            "macros/actions.html",
+            "macros/admin/actions.html",
             model=course,
             endpoint=url_for("api_main.courses"),
             model_type="course"
@@ -251,7 +251,7 @@ def courses():
     terms = [t for t in Term.query.order_by(Term.index).all()]
 
     return(render_template(
-        "admin_courses.html",
+        "admin/courses.html",
         courses=courses,
         rows=rows,
         titles=titles,
@@ -274,7 +274,7 @@ def terms():
 
     for term in terms_:
         actions = render_template(
-            "macros/actions.html",
+            "macros/admin/actions.html",
             model=term,
             endpoint=url_for("api_main.terms"),
             model_type="term"
@@ -290,7 +290,7 @@ def terms():
     titles = ["Index", "ID", "Name", "Abbreviation", "Actions"]
 
     return(render_template(
-        "admin_terms.html",
+        "admin/terms.html",
         terms=terms_,
         rows=rows,
         titles=titles,
@@ -311,7 +311,7 @@ def departments():
 
     for department in departments_:
         actions = render_template(
-            "macros/actions.html",
+            "macros/admin/actions.html",
             model=department,
             endpoint=url_for("api_main.departments"),
             model_type="department"
@@ -326,7 +326,7 @@ def departments():
     titles = ["ID", "Name", "Abbreviation", "Actions"]
 
     return(render_template(
-        "admin_departments.html",
+        "admin/departments.html",
         departments=departments_,
         rows=rows,
         titles=titles,

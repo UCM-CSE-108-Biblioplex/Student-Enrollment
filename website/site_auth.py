@@ -126,7 +126,6 @@ def signup():
             flash(f"Welcome, {first_name}", "success")
             return(redirect(url_for("site_main.home")))
         except Exception as e:
-            print(e)
             db.session.rollback()
             flash(f"A database error occurred. ({e})", "error")
             return(redirect(url_for("site_auth.signup")))

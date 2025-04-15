@@ -91,7 +91,7 @@
             {# Next button #}
             <li class="pagination-item">
                 <a hx-target="{{ hx_target }}" hx-boost="true" hx-headers='{"Accept": "text/html"}' hx-swap="innerHTML" hx-get="{{ base_url }}{{ current_page + 1 }}" 
-                   class="pagination-link{% if current_page == total_pages %} disabled{% endif %}"
+                   class="pagination-link{% if current_page >= total_pages %} disabled{% endif %}"
                    {% if current_page == total_pages %}aria-disabled="true"{% endif %}>
                     Next
                 </a>

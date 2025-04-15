@@ -39,6 +39,14 @@
 		</div>
 	</div>
 	{% endif %}
+	{% if current_user.is_instructor() %}
+	<div class="topnav-dropdown">
+		<button class="topnav-dropbtn">Instructors</button>
+		<div class="dropdown-content">
+			<a class="topnav-link"  href="{{ url_for('site_teacher.courses') }}"><span>Manage Courses</span></a>
+		</div>
+	</div>
+	{% endif %}
 	<a class="topnav-link theme-toggle" href="#" @click.prevent="toggleTheme" style="margin-left: auto">
 		<svg x-show="!isDarkTheme" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
 			<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path>
