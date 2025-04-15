@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash as cph
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, APIKey, CourseCorequisite, Course, Term, Department
+from .models import User, APIKey, CourseCorequisite, Course, Term, Department, CoursePrerequisite
 from . import db
 import re
 
@@ -526,7 +526,7 @@ def courses():
             for corequisite in corequisites:
                 if(type(corequisite) != dict):
                     abort(Response("Invalid course corequisites", 400))
-                if(corequesitie in course_corequisites):
+                if(corequisite in course_corequisites):
                     continue
                 new_corequisite = CourseCorequisite(
                     course=target_course,
@@ -544,14 +544,14 @@ def courses():
         if(prerequisites):
             try:
                 # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
-                prerequisites = [{"dept": split[0], "number": spit[1]} for split in [prereq.split("-") for prereq in prerequisites]]
+                prerequisites = [{"dept": split[0], "number": split[1]} for split in [prereq.split("-") for prereq in prerequisites]]
             except:
                 abort(Response())
             course_prerequisites = [prereq.to_dict() for prereq in target_course.prerequisites]
             for prerequisite in prerequisites:
                 if(type(prerequisite) != dict):
                     abort(Response("Invalid course prerequisites", 400))
-                if(prerequesitie in course_prerequisites):
+                if(prerequisite in course_prerequisites):
                     continue
                 new_prerequisite = CoursePrerequisite(
                     course=target_course,
@@ -592,8 +592,8 @@ def courses():
             actions = render_template(
                 "macros/actions.html",
                 model=course,
-                endpoint=url_for("api_main.terms"),
-                model_type="term"
+                endpoint=url_for("api_main.courses"),
+                model_type="course"
             )
             rows.append([
                 course.id,
@@ -605,6 +605,8 @@ def courses():
                 course.units,
                 actions
             ])
+        depts = [d for d in Department.query.all()]
+        terms = [t for t in Term.query.all()]
         return(render_template(
             "macros/courses_content.html",
             courses=courses_,
@@ -614,8 +616,8 @@ def courses():
             total_pages=total_pages,
             total_courses=total_courses,
             items_per_page=50,
-            depts=["CSE", "MATH", "WRI", "PHYS", "CHEM", "ENG", "ENGR", "EE", "EECS", "GASP", "ANTH", "BIOE", "BIO", "CHE", "BCME", "CCST", "CHN", "JPN", "CEE", "COGS", "COMM", "CRS", "CRES", "DSC", "ECON", "EDU", "EH", "ES", "ESS", "FRE", "GEO", "GSTU", "HIS", "HS", "IH", "MGMT", "MBSE", "MSE", "ME", "MIST", "NSE", "PHIL", "POLI", "PSY", "PH", "QSB", "SPRK", "SPAN", "SOC"],
-            terms=["F09", "S10", "Su10", "F10", "S11", "Su11", "F11", "S12", "Su12", "F12", "S13", "Su13", "F13", "S14", "Su14", "F14", "S15", "Su15", "F15", "S16", "Su16", "F16", "S17", "Su17", "F17", "S18", "Su18", "F18", "S19", "Su19", "F19", "S20", "Su20", "F20", "S21", "Su21", "F21", "S22", "Su22", "F22", "S23", "Su23", "F23", "S24", "Su24", "F24", "S25", "Su25", "F25"]
+            depts=depts,
+            terms=terms
         ))
 
     if(request.method == "GET"):
@@ -660,7 +662,7 @@ def courses():
         
         target_course = edit_course(request)
         try:
-            db.session.add(new_course)
+            db.session.add(target_course)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -675,7 +677,7 @@ def courses():
             total_courses = pagination.total
             return(render_courses(courses_, current_page, total_pages, total_courses, 50))
         else:
-            return(jsonify(new_course.to_dict()))
+            return(jsonify(target_course.to_dict()))
     
     if(request.method == "DELETE"):
         if(not g.user.is_admin):
@@ -869,16 +871,16 @@ def terms():
             items_per_page=50
         ))
     if(request.method == "GET"):
-        terms_, page, total_pages, total_users, per_page = get_users(request)
+        terms_, page, total_pages, total_terms, per_page = get_terms(request)
 
         accept_header = request.headers.get("Accept", "")
         if("text/html" in accept_header):
-            return(render_terms(terms_, page, total_pages, total_users, per_page))
+            return(render_terms(terms_, page, total_pages, total_terms, per_page))
         else:
             response = {
                 "terms": [term.to_dict() for term in terms_],
                 "total_pages": total_pages,
-                "total_terms": total_term,
+                "total_terms": total_terms,
             }
             return(jsonify(response))
     
