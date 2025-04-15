@@ -2,26 +2,7 @@
 {% extends "master.html" %}
 
 {% block head %}
-{# Remove admin_tables.js if not needed, add Alpine if pagination uses it #}
-{# <script src="{{ url_for('static', filename='js/admin_tables.js') }}"></script> #}
-<script>
-// Optional: Alpine for pagination URL updates if you add pagination back
-document.addEventListener('alpine:init', () => {
-    Alpine.data("param", () => ({
-        updateURLParam (param, value) {
-            const url = new URL (window.location.href);
-            url.searchParams.set(param, value);
-            window.history.pushState ({}, '', url);
-        }
-    }));
-     // Optional: Re-init Alpine after HTMX swap if needed
-     document.body.addEventListener('htmx:afterSwap', function(event) {
-        if (event.detail.target.id === 'courses-content') {
-             Alpine.initTree(event.detail.target);
-        }
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/admin_tables.js') }}"></script>
 {% endblock %}
 
 {% block body %}
