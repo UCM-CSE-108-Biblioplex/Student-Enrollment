@@ -209,7 +209,6 @@ body {
 main {
     flex: 1 0 auto;
 }
-
 /* === Layout and Containers === */
 .container {
     width: 100%;
@@ -399,6 +398,30 @@ html.dark-theme .btn-danger {
 @media (prefers-color-scheme: dark) {
     .btn-danger {
         background-color: var(--mocha-red);
+    }
+}
+
+a:visited {
+    color: var(--latte-mauve);
+}
+html.dark-theme a:visited {
+    color: var(--mocha-mauve);
+}
+@media (prefers-color-scheme: dark) {
+    a:visited {
+        color: var(--mocha-mauve);
+    }
+}
+
+a {
+    color: var(--latte-lavender);
+}
+html.dark-theme a {
+    color: var(--mocha-lavender);
+}
+@media (prefers-color-scheme: dark) {
+    a {
+        color: var(--mocha-lavender);
     }
 }
 
