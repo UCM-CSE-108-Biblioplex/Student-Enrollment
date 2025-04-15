@@ -92,7 +92,7 @@ def courses():
     titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
 
     return(render_template(
-        "teacher_courses.html",
+        "instructor/courses.html",
         courses=courses,
         rows=rows,
         titles=titles,
@@ -100,4 +100,13 @@ def courses():
         total_pages=total_pages,
         total_courses=total_courses,
         items_per_page=per_page
+    ))
+
+@site_teacher.route("/Courses/<string:course_id>")
+def course(course_id):
+    course = Course.query.get_or_404(course_id)
+
+    return(render_template(
+        "instructor/course.html",
+        course=course
     ))
