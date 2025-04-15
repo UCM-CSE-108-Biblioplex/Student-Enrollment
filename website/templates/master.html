@@ -26,9 +26,9 @@
 		</div>
 	</div>
 	<div class="topnav-dropdown">
-		<button class="topnav-dropbtn">Enrollment<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+		<button class="topnav-dropbtn">Teacher View<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
 		<div class="dropdown-content">
-			<a class="topnav-link"  href="{{ url_for('site_teacher.courses') }}"><span>Enroll in Class</span></a>
+			<a class="topnav-link"  href="{{ url_for('site_teacher.courses') }}"><span>My Classes</span></a>
 		</div>
 	</div>
 	{% else %}
