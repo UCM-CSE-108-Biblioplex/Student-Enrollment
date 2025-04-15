@@ -526,7 +526,7 @@ def courses():
             for corequisite in corequisites:
                 if(type(corequisite) != dict):
                     abort(Response("Invalid course corequisites", 400))
-                if(corequesite in course_corequisites):
+                if(corequisite in course_corequisites):
                     continue
                 new_corequisite = CourseCorequisite(
                     course=target_course,
@@ -551,7 +551,7 @@ def courses():
             for prerequisite in prerequisites:
                 if(type(prerequisite) != dict):
                     abort(Response("Invalid course prerequisites", 400))
-                if(prerequesite in course_prerequisites):
+                if(prerequisite in course_prerequisites):
                     continue
                 new_prerequisite = CoursePrerequisite(
                     course=target_course,
