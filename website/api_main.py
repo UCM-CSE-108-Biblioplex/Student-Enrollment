@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash as cph
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, APIKey, CourseCorequisite, Course, Term, Department
+from .models import User, APIKey, CourseCorequisite, Course, Term, Department, CoursePrerequisite
 from . import db
 import re
 
@@ -526,7 +526,7 @@ def courses():
             for corequisite in corequisites:
                 if(type(corequisite) != dict):
                     abort(Response("Invalid course corequisites", 400))
-                if(corequesitie in course_corequisites):
+                if(corequesite in course_corequisites):
                     continue
                 new_corequisite = CourseCorequisite(
                     course=target_course,
@@ -544,14 +544,14 @@ def courses():
         if(prerequisites):
             try:
                 # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
-                prerequisites = [{"dept": split[0], "number": spit[1]} for split in [prereq.split("-") for prereq in prerequisites]]
+                prerequisites = [{"dept": split[0], "number": split[1]} for split in [prereq.split("-") for prereq in prerequisites]]
             except:
                 abort(Response())
             course_prerequisites = [prereq.to_dict() for prereq in target_course.prerequisites]
             for prerequisite in prerequisites:
                 if(type(prerequisite) != dict):
                     abort(Response("Invalid course prerequisites", 400))
-                if(prerequesitie in course_prerequisites):
+                if(prerequesite in course_prerequisites):
                     continue
                 new_prerequisite = CoursePrerequisite(
                     course=target_course,
@@ -871,16 +871,16 @@ def terms():
             items_per_page=50
         ))
     if(request.method == "GET"):
-        terms_, page, total_pages, total_users, per_page = get_users(request)
+        terms_, page, total_pages, total_terms, per_page = get_terms(request)
 
         accept_header = request.headers.get("Accept", "")
         if("text/html" in accept_header):
-            return(render_terms(terms_, page, total_pages, total_users, per_page))
+            return(render_terms(terms_, page, total_pages, total_terms, per_page))
         else:
             response = {
                 "terms": [term.to_dict() for term in terms_],
                 "total_pages": total_pages,
-                "total_terms": total_term,
+                "total_terms": total_terms,
             }
             return(jsonify(response))
     
@@ -940,7 +940,7 @@ def terms():
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            abort(Respone("A database error occurred.", 500))
+            abort(Response("A database error occurred.", 500))
         
         print("deleting")
 

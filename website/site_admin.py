@@ -5,6 +5,7 @@ from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
 from .models import User, Course, Term, Department
+from . import db
 
 site_admin = Blueprint("site_admin", __name__)
 
@@ -223,7 +224,7 @@ def users():
 def courses():
     if(not current_user.is_authenticated or not current_user.is_admin):
         flash("You don't have permission to access this page.", "error")
-        return(Redirect(url_for("site_main.home")))
+        return(redirect(url_for("site_main.home")))
     
     courses, page, total_pages, total_courses, per_page = get_courses(request)
     rows = []
@@ -266,7 +267,7 @@ def courses():
 def terms():
     if(not current_user.is_authenticated or not current_user.is_admin):
         flash("You don't have permission to access this page.", "error")
-        return(Redirect(url_for("site_main.home")))
+        return(redirect(url_for("site_main.home")))
     
     terms_, page, total_pages, total_terms, per_page = get_terms(request)
     rows = []
@@ -303,7 +304,7 @@ def terms():
 def departments():
     if(not current_user.is_admin):
         flash("You don't have permission to access this page.", "error")
-        return(Redirect(url_for("site_main.home")))
+        return(redirect(url_for("site_main.home")))
     
     departments_, page, total_pages, total_departments, per_page = get_departments(request)
     rows = []
