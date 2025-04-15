@@ -5,6 +5,6 @@ site_main = Blueprint("site_main", __name__)
 
 @site_main.route("/")
 def home():
-    print(current_user.courses)
+    # print(current_user.courses)
     return(render_template("index.html"))
     # return("Hello, world!")
