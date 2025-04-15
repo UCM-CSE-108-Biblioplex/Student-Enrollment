@@ -33,6 +33,18 @@ class User(db.Model, UserMixin):
     def is_instructor(self):
         return(any(role.name == "Instructor" for role in self.roles))
 
+    def get_role_assignments(self):
+        assignments = db.session.query(
+            Course, Role
+        ).join(
+            roles, Course.id == roles.c.course_id
+        ).join(
+            Role, Role.id == roles.c.role_id
+        ).filter(
+            roles.c.user_id == self.id
+        ).order_by(Course.term, Course.dept, Course.number).all()
+        return(assignments)
+
     def get_courses_role(self, role):
         courses_with_role = db.session.query(
             Course
@@ -71,6 +83,28 @@ class Course(db.Model):
 
     prerequisites = db.relationship("CoursePrerequisite", backref="course")
     corequisites = db.relationship("CourseCorequisite", backref="course")
+
+    def get_students_with_grades(self, page=1, per_page=20):
+        """
+        Fetches paginated students enrolled in this course along with their grades.
+        Returns a SQLAlchemy Pagination object.
+        """
+        student_role = Role.query.filter_by(name="Student").first()
+        if not student_role:
+            return None # Or raise an error
+
+        # Select User objects and the grade from the roles table
+        query = db.session.query(
+            User, roles.c.grade
+        ).join(
+            roles, User.id == roles.c.user_id
+        ).filter(
+            roles.c.course_id == self.id,
+            roles.c.role_id == student_role.id
+        ).order_by(User.last_name, User.first_name)
+
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        return pagination
 
     def to_dict(self):
         return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
@@ -139,10 +173,14 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63), nullable=False)
 
+    def to_dict(self):
+        return({"id": self.id, "name": self.name})
+
 roles = db.Table(
     "roles",
     db.metadata,
     db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
     db.Column("course_id", db.Integer, db.ForeignKey("courses.id"), primary_key=True),
-    db.Column("role_id", db.Integer, db.ForeignKey("roles_def.id"))
+    db.Column("role_id", db.Integer, db.ForeignKey("roles_def.id")),
+    db.Column("grade", db.String(10), nullable=True)
 )

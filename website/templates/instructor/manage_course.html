@@ -1,0 +1,110 @@
+{# website/templates/instructor/manage_course.html #}
+{% extends "master.html" %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+{% from "macros/indicator.html" import htmx_indicator %}
+{# Import the student list macro #}
+{% import "macros/instructor/student_list_content.html" as student_list with context %}
+
+{% block head %}
+<script>
+// Alpine for pagination URL updates and modal re-initialization
+document.addEventListener('alpine:init', () => {
+    Alpine.data("param", () => ({
+        updateURLParam (param, value) {
+            const url = new URL (window.location.href);
+            url.searchParams.set(param, value);
+            window.history.pushState ({}, '', url);
+        }
+    }));
+
+    // Re-init Alpine after HTMX swaps in the student list or modals
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        const targetId = event.detail.target.id;
+        if (targetId === 'student-list-content') {
+             Alpine.initTree(event.detail.target);
+             // console.log("Alpine re-initialized for student list");
+        }
+        // Add checks for modal content if needed, though targeting the list might suffice
+    });
+});
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    {# Course Header #}
+    <div class="mb-6 p-4 border rounded-lg bg-secondary">
+        <h1 class="text-2xl font-bold mb-2">Manage Course: {{ course.name }}</h1>
+        <p class="text-secondary"><strong>Term:</strong> {{ course.term }} | <strong>Dept:</strong> {{ course.dept }} | <strong>Number:</strong> {{ course.number }} | <strong>Units:</strong> {{ course.units }}</p>
+        <a href="{{ url_for('site_teacher.courses') }}" class="text-sm text-accent hover:underline mt-2 inline-block">&larr; Back to My Courses</a>
+    </div>
+
+    {# Student List Section - Content loaded/updated via HTMX #}
+    <h2 class="text-xl font-semibold mb-4">Enrolled Students</h2>
+    <div id="student-list-content" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        {# Initial rendering of the student list using the macro #}
+        {{ student_list.render_content(course, students_pagination) }}
+    </div>
+
+    {# --- Pre-rendered Modals for Editing Grades --- #}
+    {% for student, grade in students_pagination.items %}
+        {% set modal_id = 'edit-grade-modal-' ~ student.id %}
+        {% set modal_trigger_id = 'edit-grade-trigger-' ~ student.id %}
+
+        {# Hidden trigger span #}
+        {% set trigger_html %}
+            <span id="{{ modal_trigger_id }}" class="hidden"></span>
+        {% endset %}
+
+        {# Modal Content - Edit Grade Form #}
+        {% set content_html %}
+            <p class="mb-4">Editing grade for: <strong>{{ student.first_name }} {{ student.last_name }}</strong> ({{ student.username }})</p>
+            <form id="edit-grade-form-{{ student.id }}"
+                  hx-put="{{ url_for('api_main.update_student_grade', course_id=course.id, student_id=student.id) }}"
+                  hx-target="#student-list-content" {# Target the whole list container #}
+                  hx-swap="innerHTML"
+                  hx-headers='{"Accept": "text/html"}'>
+                <input type="hidden" name="current_page" value="{{ current_page }}"> {# Pass current page for re-rendering #}
+                <div class="form-group">
+                    <label for="grade-input-{{ student.id }}" class="form-label">Grade:</label>
+                    <input type="text"
+                           id="grade-input-{{ student.id }}"
+                           name="grade"
+                           class="form-input"
+                           value="{{ grade if grade is not none else '' }}"
+                           placeholder="Enter grade (e.g., A, B+, P)">
+                    <p class="text-xs text-secondary mt-1">Leave blank to clear the grade.</p>
+                </div>
+            </form>
+        {% endset %}
+
+        {# Modal Footer #}
+        {% set footer_html %}
+            <button class="btn" @click="open = false">Cancel</button>
+            <button class="btn btn-primary"
+                    hx-include="#edit-grade-form-{{ student.id }}"
+                    hx-put="{{ url_for('api_main.update_student_grade', course_id=course.id, student_id=student.id) }}"
+                    hx-target="#student-list-content"
+                    hx-swap="innerHTML"
+                    hx-headers='{"Accept": "text/html"}'
+                    @click="open = false"> {# Close modal optimistically #}
+                {{ htmx_indicator(type='spinner', size='sm') }}
+                Save Grade
+            </button>
+        {% endset %}
+
+        {# Render the modal shell #}
+        {{ modal_shell(
+            id=modal_id,
+            trigger_html=trigger_html,
+            title='Edit Student Grade',
+            content_html=content_html,
+            footer_html=footer_html,
+            size='sm'
+        ) }}
+    {% endfor %}
+    {# --- End Pre-rendered Modals --- #}
+
+</div>
+{% endblock %}

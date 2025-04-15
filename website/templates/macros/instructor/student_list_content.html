@@ -1,0 +1,56 @@
+{# website/templates/macros/instructor/student_list_content.html #}
+{% macro render_content(course, students_pagination) %}
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/indicator.html" import htmx_indicator %}
+
+{# Prepare rows for the table macro #}
+{% set student_rows = [] %}
+{% for student, grade in students_pagination.items %}
+    {% set edit_button %}
+        <button class="btn btn-primary btn-sm"
+                onclick="document.getElementById('edit-grade-trigger-{{ student.id }}').click()">
+            Edit Grade
+        </button>
+    {% endset %}
+    {% set remove_button %}
+        <button class="btn btn-danger btn-sm"
+                hx-delete="{{ url_for('api_main.remove_student_from_course', course_id=course.id, student_id=student.id) }}"
+                hx-target="#student-list-content" {# Target this content block #}
+                hx-swap="innerHTML"
+                hx-confirm="Are you sure you want to remove {{ student.first_name }} {{ student.last_name }} from this course?"
+                hx-headers='{"Accept": "text/html"}'>
+            {{ htmx_indicator(type='spinner', size='sm') }}
+            Remove
+        </button>
+    {% endset %}
+    {{ student_rows.append([
+        student.id,
+        student.first_name ~ ' ' ~ student.last_name,
+        student.username,
+        student.email,
+        grade if grade is not none else '<span class="text-secondary italic">N/A</span>',
+        '<div class="flex gap-2">'|safe ~ edit_button ~ remove_button ~ '</div>'|safe
+    ]) }}
+{% endfor %}
+
+{% set student_titles = ["ID", "Name", "Username", "Email", "Grade", "Actions"] %}
+
+{# Render table #}
+{% if students_pagination.items %}
+    {{ table("students-table", student_rows, student_titles, variant="striped") }}
+{% else %}
+    <p class="p-4 text-center text-secondary">No students are currently enrolled in this course.</p>
+{% endif %}
+
+{# Render pagination #}
+{{ pagination(
+    current_page=students_pagination.page,
+    total_pages=students_pagination.pages,
+    hx_target='#student-list-content', 
+    items_per_page=students_pagination.per_page,
+    total_items=students_pagination.total,
+    base_url=url_for('site_teacher.manage_course', course_id=course.id) + "?page="
+) }}
+
+{% endmacro %}

@@ -1,10 +1,11 @@
+from .models import User, APIKey, CourseCorequisite, Course, Term, Department, CoursePrerequisite, Role, roles
 from flask import Blueprint, jsonify, g, request, abort, Response, render_template, url_for
 from werkzeug.security import generate_password_hash as gph
 from werkzeug.security import check_password_hash as cph
+from sqlalchemy import select, delete, insert, update
 from flask_login import current_user
 from urllib.parse import unquote
 from functools import wraps
-from .models import User, APIKey, CourseCorequisite, Course, Term, Department, CoursePrerequisite
 from . import db
 import re
 
@@ -59,6 +60,43 @@ def generate_username(first_name, middle_name, last_name):
         username = processed_last_name + middle_initial + last_initial
     
     return username
+
+def is_instructor_for_course(user, course_id):
+    instructor_role = Role.query.filter_by(name="Instructor").first()
+    if not instructor_role: return False # Should not happen
+
+    assignment = db.session.execute(
+        select(roles).where(
+            roles.c.user_id == user.id,
+            roles.c.course_id == course_id,
+            roles.c.role_id == instructor_role.id
+        )
+    ).first()
+    return assignment is not None
+
+def generate_instructor_rows(instructor_user, courses):
+    rows = []
+    for course in courses:
+        resign_button = f"""
+        <button class="btn btn-danger btn-sm"
+                hx-delete="{url_for('api_main.remove_user_role', user_id=instructor_user.id, course_id=course.id)}"
+                hx-target="#courses-content"
+                hx-swap="innerHTML"
+                hx-headers='{{"Accept": "text/html"}}'
+                hx-confirm="Are you sure you want to resign from {course.dept} {course.number}?">
+            Resign
+        </button>
+        """
+        rows.append([
+            course.id,
+            course.name,
+            course.dept,
+            course.number,
+            course.session,
+            course.units,
+            resign_button # Add the button HTML
+        ])
+    return rows
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
@@ -355,6 +393,136 @@ def users():
             return(render_users(users_, current_page, total_pages, total_users, 50))
         else:
             return(jsonify(target_user.to_dict()))
+
+@api_main.route("/users/<int:user_id>/roles", methods=["POST"])
+@requires_authentication
+def add_user_role(user_id):
+    # ... (permission checks, data validation, database logic - unchanged) ...
+    if not g.user.is_admin: 
+        abort(Response("Insufficient permissions.", 403))
+    target_user = User.query.get_or_404(user_id)
+    course_id = request.form.get("course_id")
+    role_id = request.form.get("role_id")
+    if not course_id or not role_id: abort(Response("Course ID and Role ID are required.", 400))
+    try:
+        course_id = int(course_id)
+        role_id = int(role_id)
+    except ValueError: abort(Response("Invalid Course ID or Role ID.", 400))
+    course = Course.query.get(course_id)
+    role = Role.query.get(role_id)
+    if not course or not role: abort(Response("Course or Role not found.", 404))
+    existing_assignment = db.session.execute(select(roles).where(roles.c.user_id == user_id, roles.c.course_id == course_id)).first()
+    try:
+        if existing_assignment:
+            if existing_assignment.role_id != role_id:
+                 stmt = roles.update().where(roles.c.user_id == user_id, roles.c.course_id == course_id).values(role_id=role_id)
+                 db.session.execute(stmt)
+                 operation_type = "updated"
+            else: operation_type = "unchanged"
+        else:
+            stmt = roles.insert().values(user_id=user_id, course_id=course_id, role_id=role_id)
+            db.session.execute(stmt)
+            operation_type = "added"
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        abort(Response(f"Database error: {str(e)}", 500))
+
+    # --- Response Handling ---
+    accept_header = request.headers.get('Accept', '')
+    is_htmx_request = 'text/html' in accept_header
+
+    db.session.refresh(target_user)
+    current_assignments = target_user.get_role_assignments()
+
+    if is_htmx_request:
+        all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
+        assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
+        modal_content_id = f'user-roles-modal-content-{user_id}'
+        return render_template(
+             "render_user_roles_content.html",
+             user=target_user,
+             current_assignments=current_assignments,
+             all_courses=all_courses,
+             assignable_roles=assignable_roles,
+             modal_content_id=modal_content_id
+        )
+    else:
+        formatted_assignments = [{"course": c.to_dict(), "role": r.to_dict()} for c, r in current_assignments]
+        return jsonify({"message": f"Role assignment {operation_type}.", "user_id": user_id, "assignments": formatted_assignments}), 200
+
+@api_main.route("/users/<int:user_id>/roles/<int:course_id>", methods=["DELETE"])
+@requires_authentication
+def remove_user_role(user_id, course_id):
+    if not g.user.is_admin and g.user.id != user_id and not is_instructor_for_course(g.user, course_id):
+        abort(Response("Insufficient permissions.", 403))
+    target_user = User.query.get_or_404(user_id)
+    assignment_to_delete = db.session.query(Course, Role).join(roles, Course.id == roles.c.course_id).join(Role, Role.id == roles.c.role_id).filter(roles.c.user_id == user_id, roles.c.course_id == course_id).first()
+    if g.user.id == user_id and assignment_to_delete and assignment_to_delete.Role.name != "Instructor": abort(Response("Instructors can only resign from 'Instructor' roles via this action.", 403))
+
+    if not assignment_to_delete:
+         accept_header = request.headers.get('Accept', '')
+         is_htmx_request = 'text/html' in accept_header
+         if is_htmx_request:
+             if g.user.id == user_id: # Self-removal (Instructor)
+                 instructor_role = Role.query.filter_by(name="Instructor").first()
+                 courses = target_user.get_courses_role(instructor_role)
+                 rows = generate_instructor_rows(target_user, courses)
+                 titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+                 return render_template("macros/instructor/courses_content.html", courses=courses, rows=rows, titles=titles, current_page=1, total_pages=1, total_courses=len(courses), items_per_page=len(courses))
+             else: # Admin removal
+                 current_assignments = target_user.get_role_assignments()
+                 all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
+                 assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
+                 modal_content_id = f'user-roles-modal-content-{user_id}'
+                 # *** RENDER THE SPECIFIC TEMPLATE ***
+                 return render_template("render_user_roles_content.html", user=target_user, current_assignments=current_assignments, all_courses=all_courses, assignable_roles=assignable_roles, modal_content_id=modal_content_id)
+         else:
+             return jsonify({"message": "Assignment not found or already deleted."}), 200
+
+    deleted_course, deleted_role = assignment_to_delete
+    try:
+        stmt = delete(roles).where(roles.c.user_id == user_id, roles.c.course_id == course_id)
+        result = db.session.execute(stmt)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        abort(Response(f"Database error: {str(e)}", 500))
+
+    # --- Response Handling ---
+    accept_header = request.headers.get('Accept', '')
+    is_htmx_request = 'text/html' in accept_header
+
+    if is_htmx_request:
+        db.session.refresh(target_user)
+        if g.user.id == user_id and not g.user.is_admin:
+            instructor_role = Role.query.filter_by(name="Instructor").first()
+            courses = target_user.get_courses_role(instructor_role)
+            rows = generate_instructor_rows(target_user, courses)
+            titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
+            # Render the full instructor content macro/template directly
+            return render_template("macros/instructor/courses_content.html", courses=courses, rows=rows, titles=titles, current_page=1, total_pages=1, total_courses=len(courses), items_per_page=len(courses))
+        else: # Admin removal
+            current_assignments = target_user.get_role_assignments()
+            all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
+            assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
+            modal_content_id = f'user-roles-modal-content-{user_id}'
+            # *** RENDER THE SPECIFIC TEMPLATE ***
+            return render_template(
+                 "render_user_roles_content.html",
+                 user=target_user,
+                 current_assignments=current_assignments,
+                 all_courses=all_courses,
+                 assignable_roles=assignable_roles,
+                 modal_content_id=modal_content_id
+            )
+    else:
+        # Return JSON (unchanged)
+        if not hasattr(Role, 'to_dict'):
+             def role_to_dict(self): return {'id': self.id, 'name': self.name}
+             Role.to_dict = role_to_dict
+        formatted_deleted = {"course": deleted_course.to_dict(), "role": deleted_role.to_dict()}
+        return jsonify({"message": "Role assignment removed.", "user_id": user_id, "deleted_assignment": formatted_deleted}), 200
 
 @api_main.route("/courses", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
@@ -702,6 +870,98 @@ def courses():
             return(render_courses(courses_, current_page, total_pages, total_courses, 50))
         else:
             return(jsonify(target_course.to_dict()))
+
+@api_main.route("/courses/<int:course_id>/students/<int:student_id>/grade", methods=["PUT"])
+@requires_authentication
+def update_student_grade(course_id, student_id):
+    # ... (authentication, validation, database logic - unchanged) ...
+    if not is_instructor_for_course(g.user, course_id) and not g.user.is_admin:
+        abort(Response("Insufficient permissions. Must be instructor for this course.", 403))
+    new_grade = request.form.get("grade")
+    if new_grade is None: abort(Response("Grade value is required.", 400))
+    student_role = Role.query.filter_by(name="Student").first()
+    if not student_role: abort(Response("Student role definition not found.", 500))
+    assignment = db.session.execute(select(roles).where(roles.c.user_id == student_id, roles.c.course_id == course_id, roles.c.role_id == student_role.id)).first()
+    if not assignment: abort(Response("Student enrollment record not found for this course.", 404))
+    try:
+        stmt = update(roles).where(roles.c.user_id == student_id, roles.c.course_id == course_id).values(grade=new_grade if new_grade != "" else None)
+        db.session.execute(stmt)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        abort(Response(f"Database error updating grade: {str(e)}", 500))
+
+    # --- Response Handling ---
+    accept_header = request.headers.get('Accept', '')
+    is_htmx_request = 'text/html' in accept_header
+
+    if is_htmx_request:
+        course = Course.query.get_or_404(course_id)
+        try: page = int(request.form.get("current_page", 1))
+        except ValueError: page = 1
+        students_pagination = course.get_students_with_grades(page=page, per_page=20)
+        # *** RENDER THE SPECIFIC TEMPLATE ***
+        return render_template(
+            "render_student_list_content.html", # Use the specific template
+            course=course,
+            students_pagination=students_pagination
+        )
+    else:
+        # Return JSON (unchanged)
+        student = User.query.get(student_id)
+        return jsonify({"message": "Grade updated successfully.", "course_id": course_id, "student_id": student_id, "student_username": student.username if student else "N/A", "new_grade": new_grade if new_grade != "" else None}), 200
+    
+@api_main.route("/courses/<int:course_id>/students/<int:student_id>", methods=["DELETE"])
+@requires_authentication
+def remove_student_from_course(course_id, student_id):
+    # ... (authentication, validation, database logic - unchanged) ...
+    if not is_instructor_for_course(g.user, course_id): abort(Response("Insufficient permissions. Must be instructor for this course.", 403))
+    target_user = User.query.get_or_404(student_id)
+    assignment_to_delete = db.session.query(Course, Role).join(roles, Course.id == roles.c.course_id).join(Role, Role.id == roles.c.role_id).filter(roles.c.user_id == student_id, roles.c.course_id == course_id).first()
+
+    if not assignment_to_delete:
+         accept_header = request.headers.get('Accept', '')
+         is_htmx_request = 'text/html' in accept_header
+         if is_htmx_request:
+             course = Course.query.get_or_404(course_id)
+             page = 1
+             students_pagination = course.get_students_with_grades(page=page, per_page=20)
+             # *** RENDER THE SPECIFIC TEMPLATE ***
+             return render_template("render_student_list_content.html", course=course, students_pagination=students_pagination)
+         else:
+             return jsonify({"message": "Student enrollment not found or already removed."}), 200
+
+    deleted_course, deleted_role = assignment_to_delete
+    if deleted_role.name != "Student": abort(Response("This action can only remove students.", 403))
+    try:
+        stmt = delete(roles).where(roles.c.user_id == student_id, roles.c.course_id == course_id)
+        result = db.session.execute(stmt)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        abort(Response(f"Database error removing student: {str(e)}", 500))
+
+    # --- Response Handling ---
+    accept_header = request.headers.get('Accept', '')
+    is_htmx_request = 'text/html' in accept_header
+
+    if is_htmx_request:
+        course = Course.query.get_or_404(course_id)
+        page = 1
+        students_pagination = course.get_students_with_grades(page=page, per_page=20)
+        # *** RENDER THE SPECIFIC TEMPLATE ***
+        return render_template(
+            "render_student_list_content.html",
+            course=course,
+            students_pagination=students_pagination,
+        )
+    else:
+        # Return JSON (unchanged)
+        if not hasattr(Role, 'to_dict'):
+             def role_to_dict(self): return {'id': self.id, 'name': self.name}
+             Role.to_dict = role_to_dict
+        formatted_deleted = {"course": deleted_course.to_dict(), "role": deleted_role.to_dict()}
+        return jsonify({"message": "Student removed from course.", "course_id": course_id, "removed_student_id": student_id, "removed_student_username": target_user.username, "removed_assignment": formatted_deleted}), 200
 
 @api_main.route("/terms", methods=["POST", "GET", "PUT", "DELETE"])
 @requires_authentication

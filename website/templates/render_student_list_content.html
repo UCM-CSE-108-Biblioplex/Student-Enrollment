@@ -1,0 +1,7 @@
+{# website/templates/render_student_list_content.html #}
+{% import "macros/instructor/student_list_content.html" as student_list_macro with context %}
+{{ student_list_macro.render_content(
+    course=course,
+    students_pagination=students_pagination
+   )
+}}

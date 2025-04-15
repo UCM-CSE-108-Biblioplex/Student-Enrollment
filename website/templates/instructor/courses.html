@@ -1,3 +1,4 @@
+{# website/templates/instructor/courses.html #}
 {% extends "master.html" %}
 
 {% block head %}
@@ -6,8 +7,9 @@
 
 {% block body %}
 <div class="container mt-8">
-    <h1 class="mb-4">Instructor Courses</h1>
-    
+    <h1 class="mb-4">My Courses (Instructor)</h1>
+
+    {# This div is the target for HTMX swaps #}
     <div id="courses-content">
         {% include "macros/instructor/courses_content.html" %}
     </div>
