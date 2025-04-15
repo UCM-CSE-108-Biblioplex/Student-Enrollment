@@ -154,11 +154,12 @@ def enroll_term(term):
     end = start + items_per_page
     paginated_courses = courses_cat[start:end]
 
-    titles = ["Course Name", "Department", "Number"]
+    titles = ["Course Name", "Department", "Number", "Add"]
     rows = [[
         render_template("catalog/course_info.html", course=c),
         c.dept,
-        c.number
+        c.number,
+        f'<button class="btn btn-primary">Enroll</button>'
     ] for c in paginated_courses]
 
     show_results = bool(subjectData or courseID or request.args.get("page"))
