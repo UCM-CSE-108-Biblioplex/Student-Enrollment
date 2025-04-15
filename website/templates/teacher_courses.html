@@ -1,0 +1,62 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/admin_courses.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">Teacher Courses</h1>
+    
+    <div id="courses-content">
+        {% include "macros/courses_content.html" %}
+    </div>
+
+    {% from "macros/modal.html" import modal_shell %}
+
+    {% set content_html %}
+    <form id="course-new-form" x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <input type="hidden" style="display: none" value="new" name="course_id" id="course-new-id">
+
+        <div class="form-group">
+            <label for="course-new-term">Term:</label>
+            <select class="form-select" id="course-new-term" name="term">
+                {% for term in terms %}
+                <option>{{ term }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-name">Name:</label>
+            <input class="form-input" type="text" id="course-new-name" name="name" placeholder="Course Name">
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-dept">Department:</label>
+             <select class="form-select" id="course-new-dept" name="dept">
+                {% for dept in depts %}
+                <option>{{ dept }}</option>
+                {% endfor %}
+             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-number">Course Number:</label>
+            <input class="form-input" type="text" id="course-new-number" name="number" placeholder="Course Number">
+        </div>
+
+        <div class="form-group">
+            <label for="course-new-session">Course Session:</label>
+            <input class="form-input" type="text" id="course-new-id" name="session" placeholder="Course Session">
+        </div>
+
+        <div clas="form-group">
+            <label for="course-new-units">Course Units:</label>
+            <input class="form-input" type="number" id="course-new-units" name="units" placeholder="Course Units">
+        </div>
+    </form>
+    {% endset %}
+
+</div>
+{% endblock %}
