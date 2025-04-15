@@ -78,7 +78,7 @@ def catalog_term(term):
 
     titles = ["Course Name", "Department", "Number"]
     rows = [[
-        render_template("partials/course_info.html", course=c),
+        render_template("catalog/course_info.html", course=c),
         c.dept,
         c.number
     ] for c in paginated_courses]
@@ -90,7 +90,7 @@ def catalog_term(term):
     if request.headers.get("HX-Request"):
         if not show_results:
             return ""  
-        return render_template("partials/course_table.html", 
+        return render_template("catalog/course_table.html", 
         titles=titles, 
         courses=paginated_courses,
         rows=rows, 
@@ -156,7 +156,7 @@ def enroll_term(term):
 
     titles = ["Course Name", "Department", "Number"]
     rows = [[
-        render_template("partials/course_info.html", course=c),
+        render_template("catalog/course_info.html", course=c),
         c.dept,
         c.number
     ] for c in paginated_courses]
@@ -168,7 +168,7 @@ def enroll_term(term):
     if request.headers.get("HX-Request"):
         if not show_results:
             return ""  
-        return render_template("partials/course_table.html", 
+        return render_template("catalog/course_table.html", 
         titles=titles, 
         courses=paginated_courses,
         rows=rows, 
