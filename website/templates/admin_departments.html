@@ -1,0 +1,61 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/admin_tables.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">Department Administration</h1>
+
+    <div id="departments-content">
+        {% include "macros/departments_content.html" %}
+    </div>
+
+    {% from "macros/modal.html" import modal_shell %}
+    {% set trigger_html %}
+    <button class="btn btn-primary mb-8">Add New Department</button>
+    {% endset %}
+
+    {% set content_html %}
+    <form id="department-new-form" x-data="param" x-init="updateURLParam('page', {{ current_page or 1 }})">
+        {# Hidden field, standard practice, maybe not strictly necessary if backend creates new #}
+        <input type="hidden" style="display: none" value="new" name="department_id" id="department-new-id">
+
+        <div class="form-group">
+            <label for="department-new-name">Name:</label>
+            <input class="form-input" type="text" id="department-new-name" name="name" placeholder="Department Name" required>
+        </div>
+        <div class="form-group">
+            <label for="department-new-abbreviation">Abbreviation:</label>
+            <input class="form-input" type="text" id="department-new-abbreviation" name="abbreviation" placeholder="Abbreviation (e.g., CSE)" maxlength="7" required>
+        </div>
+    </form>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    <button
+        class="btn btn-primary"
+        hx-post="{{ url_for('api_main.departments') }}"
+        hx-include="#department-new-form"
+        hx-headers='{"Accept": "text/html"}'
+        hx-target="#departments-content"
+        hx-swap="innerHTML"
+        @click="open = false">
+        {% from "macros/indicator.html" import htmx_indicator %}
+        {{ htmx_indicator(type="spinner", size="sm") }}
+        Create Department
+    </button>
+    {% endset %}
+
+    {{ modal_shell(
+        id='department-modal-new',
+        trigger_html=trigger_html,
+        title='Create Department',
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
+</div>
+{% endblock %}

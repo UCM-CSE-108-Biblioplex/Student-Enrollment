@@ -39,7 +39,11 @@
 
         <div class="form-group">
             <label for="course-{{ course.id }}-term">Term:</label>
-            <input class="form-input" type="text" id="course-{{ course.id }}-term" name="term" placeholder="Course Term" value="{{ course.term }}">
+            <select class="form-select" id="course-{{ course.id }}-term" name="term" value="{{ course.term }}">
+                {% for term in terms %}
+                <option value="{{ term.abbreviation }}">{{ term.name }} ({{ term.abbreviation }})</option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="form-group">
@@ -49,7 +53,12 @@
 
         <div class="form-group">
             <label for="course-{{ course.id }}-dept">Department:</label>
-            <input class="form-input" type="text" id="course-{{ course.id }}-dept" name="dept" placeholder="Course Department" value="{{ course.dept }}">
+            <!-- <input class="form-input" type="text" id="course-{{ course.id }}-dept" name="dept" placeholder="Course Department" value="{{ course.dept }}"> -->
+             <select class="form-select" id="course-{{ course.id }}-dept" name="dept" value="{{ course.dept }}">
+                {% for dept in depts %}
+                <option value="{{ dept.abbreviation }}">{{ dept.name }} ({{ dept.abbreviation }})</option>
+                {% endfor %}
+             </select>
         </div>
 
         <div class="form-group">
@@ -64,7 +73,7 @@
 
         <div clas="form-group">
             <label for="course-{{ course.id }}-units">Course Units:</label>
-            <input id="course-{{ course.id }}-units" name="units" placeholder="Course Units" value="{{ course.units }}">
+            <input class="form-input" type="number" id="course-{{ course.id }}-units" name="units" placeholder="Course Units" value="{{ course.units }}">
         </div>
     </form>
     {% endset %}
