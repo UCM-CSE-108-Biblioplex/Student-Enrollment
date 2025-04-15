@@ -33,6 +33,18 @@ class User(db.Model, UserMixin):
     def is_instructor(self):
         return(any(role.name == "Instructor" for role in self.roles))
 
+    def get_role_assignments(self):
+        assignments = db.session.query(
+            Course, Role
+        ).join(
+            roles, Course.id == roles.c.course_id
+        ).join(
+            Role, Role.id == roles.c.role_id
+        ).filter(
+            roles.c.user_id == self.id
+        ).order_by(Course.term, Course.dept, Course.number).all()
+        return(assignments)
+
     def get_courses_role(self, role):
         courses_with_role = db.session.query(
             Course
@@ -138,6 +150,9 @@ class Role(db.Model):
     __tablename__ = "roles_def"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63), nullable=False)
+
+    def to_dict(self):
+        return({"id": self.id, "name": self.name})
 
 roles = db.Table(
     "roles",

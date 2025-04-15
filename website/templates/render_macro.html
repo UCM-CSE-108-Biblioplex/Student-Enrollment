@@ -1,0 +1,12 @@
+{% import macro_name.split('/')[0] + '/' + macro_name.split('/')[1] + '/' + macro_name.split('/')[2].split('.')[0] + '.html' as macro_module with context %}
+
+{# Explicitly pass the arguments needed by the target macro #}
+{# Ensure these names match what render_content expects and what api_main passes #}
+{{ macro_module[macro_name.split('.')[1]](
+    user=user,
+    current_assignments=current_assignments,
+    all_courses=all_courses,
+    assignable_roles=assignable_roles,
+    modal_content_id=modal_content_id
+   )
+}}
