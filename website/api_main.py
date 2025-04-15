@@ -787,7 +787,6 @@ def terms():
             abort(Response("No request body.", 400))
 
         term_id = data.get("term_id", "")
-        print(data)
         if(not term_id):
             abort(Response("Term ID is required.", 400))
         try:
@@ -832,7 +831,6 @@ def terms():
         try:
             term_id = int(term_id)
         except:
-            print(term_id)
             abort(Response("Invalid Term ID", 404))
 
         target_term = Term.query.get(term_id)
@@ -941,8 +939,6 @@ def terms():
         except Exception as e:
             db.session.rollback()
             abort(Respone("A database error occurred.", 500))
-        
-        print("deleting")
 
         accept_header = request.headers.get("Accept", "")
         if("text/html" in accept_header):

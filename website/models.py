@@ -13,6 +13,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False, info={"min_length": 4})
     api_keys = db.relationship("APIKey", backref="user")
+
     courses = db.relationship(
         "Course",
         secondary= "roles",
@@ -20,9 +21,17 @@ class User(db.Model, UserMixin):
         primaryjoin="User.id == roles.c.user_id",
         secondaryjoin="Course.id == roles.c.course_id"
     )
+    roles = db.relationship(
+        "Role",
+        secondary="roles",
+        backref="users"
+    )
 
     def to_dict(self):
         return({attr.name: getattr(self, attr.name) for attr in self.__table__.columns})
+
+    def is_instructor(self):
+        return(any(role.name == "Instructor" for role in self.roles))
 
     def get_courses_role(self, role):
         courses_with_role = db.session.query(
