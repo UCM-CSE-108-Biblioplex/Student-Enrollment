@@ -871,6 +871,75 @@ def courses():
         else:
             return(jsonify(target_course.to_dict()))
 
+# not quite DRY but I don't get paid enough for that
+# wait, I don't get paid at all...
+@api_main.route("/catalog")
+def catalog():
+    print(request.args)
+    print(request.form)
+
+    courses = Course.query
+    term = request.args.get("term", None) or request.form.get("term", None)
+    if(term):
+        courses = courses.filter_by(term=term)
+    department = request.form.get("subject", None) or request.args.get("subject", None)
+    if(department):
+        courses = courses.filter_by(department=department)
+    course_number = request.args.get("number", None) or request.args.get("number", None)
+    if(course_number):
+        courses = courses.filter_by(number=course_number)
+    page = request.args.get("page", 1) or request.form.get("page", 1)
+    try:
+        page = int(page)
+    except:
+        page = 1
+    per_page = request.args.get("per_page", 50) or request.form.get("per_page", 50)
+    try:
+        per_page = int(per_page)
+    except:
+        per_page = 1
+    
+    pagination = courses.paginate(page=page, per_page=per_page)
+    total_courses = pagination.total
+    total_pages = pagination.pages
+    courses = pagination.items
+    print(courses)
+
+    accept_header = request.headers.get("Accept", "")
+    if("text/html" in accept_header):
+        titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units"]
+        rows = []
+
+        for course in courses:
+            rows.append([
+                course.id,
+                course.term,
+                course.name,
+                course.dept,
+                course.number,
+                course.session,
+                course.units,
+            ])
+        depts = [d for d in Department.query.all()]
+        terms = [t for t in Term.query.all()]
+        return(render_template(
+            "macros/enrollment/catalog_content.html",
+            courses=courses,
+            rows=rows,
+            titles=titles,
+            current_page=page,
+            total_pages=total_pages,
+            total_courses=total_courses,
+            items_per_page=per_page,
+        ))
+    else:
+        response = {
+            "courses": [course.to_dict() for course in courses],
+            "total_pages": total_pages,
+            "total_courses": total_courses,
+        }
+        return(jsonify(response))
+
 @api_main.route("/courses/<int:course_id>/students/<int:student_id>/grade", methods=["PUT"])
 @requires_authentication
 def update_student_grade(course_id, student_id):
