@@ -1200,7 +1200,7 @@ def terms():
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            abort(Respone("A database error occurred.", 500))
+            abort(Response("A database error occurred.", 500))
 
         accept_header = request.headers.get("Accept", "")
         if("text/html" in accept_header):
