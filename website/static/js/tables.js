@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reinitialize Alpine for the newly swapped content
             Alpine.initTree(event.detail.target);
         }
+        if (event.detail.target.id === "catalog-content") {
+            // Reinitialize Alpine for the newly swapped content
+            Alpine.initTree(event.detail.target);
+        }
     });
 });
 
