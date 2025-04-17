@@ -97,10 +97,11 @@ def catalog_term(term):
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units"]
     rows = []
     for course in courses:
+        modal_html =  f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>"""
         rows.append([
             course.id,
             course.term,
-            f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>""",
+            modal_html,
             course.dept,
             course.number,
             course.session,
