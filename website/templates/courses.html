@@ -16,7 +16,7 @@
         <h2 class="mt-8 fw-bold">Enter Your Search Criteria</h2>
         <h5>Term: {{ term.name|title }}</h5>
         <a href="{{ url_for('site_enrollment.catalog')}}">
-            <button class="mt-4 mb-8 btn btn-primary" type="button">Select New Term</button>
+            <button class="mt-4 btn btn-primary" type="button">Select New Term</button>
         </a>
     </div>
 
@@ -25,14 +25,16 @@
             <div class="form-group mb-4 d-flex align-items-center">
             <label for="subject" class="form-label me-2 mb-0">Subject (Leave blank for all):</label>
             <select 
-                class="form-select" 
+                class="form-select"
                 name="subject" 
-                id="subject" 
+                id="subject"
                 placeholder="Subject/Department"
                 hx-get="{{ url_for('api_main.catalog') }}"
                 hx-trigger="change delay:1000ms"
                 hx-target="#catalog-content"
-                hx-headers='{"Accept": "text/html"}'>
+                hx-headers='{"Accept": "text/html"}'
+                hx-include="#term">
+                <option value="">All</option> 
                 {% for department in departments %}
                 <option value="{{ department.abbreviation }}">{{ department.name }} ({{ department.abbreviation }})</option>
                 {% endfor %}
@@ -50,7 +52,8 @@
                 hx-get="{{ url_for('api_main.catalog') }}"
                 hx-trigger="keyup changed delay:500ms, keydown[key=='Enter'] preventDefault"
                 hx-target="#catalog-content"
-                hx-headers='{"Accept": "text/html"}'>
+                hx-headers='{"Accept": "text/html"}'
+                hx-include="#term">
             </div>
 
             <input name="page" id="page" type="hidden" value="{{ current_page }}">

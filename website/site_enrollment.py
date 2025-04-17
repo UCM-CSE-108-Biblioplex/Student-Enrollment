@@ -51,22 +51,19 @@ def catalog():
 #   - includes level of enrollment, waitlist availability
 @site_enrollment.route("/catalog/<string:term>", methods = ['POST', 'GET'])
 def catalog_term(term):
-    # stuff
     term = Term.query.filter_by(abbreviation=term).first_or_404()
     departments = Department.query.order_by(Department.abbreviation).all()
 
     # form data
     department = request.args.get("subject", None) or request.form.get("subject", None)
     course_number = request.args.get("number", None) or request.form.get("number", None)
+    
     try:
         course_number = int(course_number)
     except:
         course_number = None
     course_id = request.args.get("course_id", None) or request.form.get("course_id", None)
-    try:
-        course_id = course_id
-    except:
-        course_id = None
+
     current_page = request.args.get("page", 1) or request.form.get("page", 1)
     try:
         current_page = int(current_page)
@@ -79,21 +76,23 @@ def catalog_term(term):
         per_page = 50
 
     courses = Course.query
-    if(course_id):
+
+    if course_id:
         courses = [courses.get_or_404(course_id)]
+        total_courses = 1
+        total_pages = 1
     else:
-        if(department):
-            courses = courses.filter_by(department=department)
-        if(course_number):
-            courses = courses.filter_by(number=number)
+        courses = courses.filter_by(term=term.abbreviation)
+
+        if department:
+            courses = courses.filter_by(dept=department)
+        if course_number:
+            courses = courses.filter_by(number=str(course_number))
+
         pagination = courses.paginate(page=current_page, per_page=per_page)
         total_pages = pagination.pages
         courses = pagination.items
         total_courses = pagination.total
-
-    if(not current_page):
-        current_page=1
-    total_pages
 
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units"]
     rows = []
