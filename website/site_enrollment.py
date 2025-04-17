@@ -126,7 +126,8 @@ def enroll():
     # just a page with links to different
     # site_enrollment.enroll_term endpoints
     # maybe use a carousel; maybe use a dropdown; idk
-    return(render_template("termSelection.html"))
+    terms = Term.query.all()
+    return(render_template("enrollment/catalog.html", terms=terms))
 
 
 # likely includes reuised components from
@@ -138,67 +139,75 @@ def enroll():
 @site_enrollment.route("/Enroll/<string:term>", methods = ['POST', 'GET'])
 @login_required
 def enroll_term(term):
-    subjectData = (request.form.get("subject") or request.args.get("subject") or "").strip()
-    courseID = (request.form.get("course") or request.args.get("course") or "").strip()
+    term = Term.query.filter_by(abbreviation=term).first_or_404()
+    departments = Department.query.order_by(Department.abbreviation).all()
 
-    query = Course.query.filter_by(term=term)
+    # form data
+    department = request.args.get("subject", None) or request.form.get("subject", None)
+    course_number = request.args.get("number", None) or request.form.get("number", None)
     
+    try:
+        course_number = int(course_number)
+    except:
+        course_number = None
+    course_id = request.args.get("course_id", None) or request.form.get("course_id", None)
 
-    if subjectData and not courseID:
-        query = query.filter(Course.dept.ilike(f"%{subjectData}%"))
-    elif courseID and not subjectData:
-        query = query.filter(Course.number == courseID)
-    elif subjectData and courseID:
-        query = query.filter(Course.dept.ilike(f"%{subjectData}%"), Course.number == courseID)
+    current_page = request.args.get("page", 1) or request.form.get("page", 1)
+    try:
+        current_page = int(current_page)
+    except:
+        current_page = 1
+    per_page = request.args.get("per_page", 50) or request.form.get("per_page", 50)
+    try:
+        per_page = int(per_page)
+    except:
+        per_page = 50
 
-    courses_cat = query.all()
-    total_items = len(courses_cat)
+    courses = Course.query
 
-    page = int(request.args.get("page", 1))
-    items_per_page = 10
-    start = (page - 1) * items_per_page
-    end = start + items_per_page
-    paginated_courses = courses_cat[start:end]
+    if course_id:
+        courses = [courses.get_or_404(course_id)]
+        total_courses = 1
+        total_pages = 1
+    else:
+        courses = courses.filter_by(term=term.abbreviation)
 
-    titles = ["Course Name", "Department", "Number", "Add"]
-    rows = [[
-        render_template("catalog/course_info.html", course=c),
-        c.dept,
-        c.number,
-        f'<button class="btn btn-primary">Enroll</button>'
-    ] for c in paginated_courses]
+        if department:
+            courses = courses.filter_by(dept=department)
+        if course_number:
+            courses = courses.filter_by(number=str(course_number))
 
-    show_results = bool(subjectData or courseID or request.args.get("page"))
+        pagination = courses.paginate(page=current_page, per_page=per_page)
+        total_pages = pagination.pages
+        courses = pagination.items
+        total_courses = pagination.total
 
-    total_pages = (total_items + items_per_page - 1) // items_per_page
-
-    if request.headers.get("HX-Request"):
-        if not show_results:
-            return ""  
-        return render_template("catalog/course_table.html", 
-        titles=titles, 
-        courses=paginated_courses,
-        rows=rows, 
-        term=term, 
-        current_page=page, 
-        total_pages=total_pages, 
-        items_per_page=items_per_page, 
-        total_items=total_items)
-
+    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Add"]
+    rows = []
+    for course in courses:
+        rows.append([
+            course.id,
+            course.term,
+            f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>""",
+            course.dept,
+            course.number,
+            course.session,
+            course.units,
+            f'<button class="btn btn-primary">Enroll</button>'
+        ])
 
     return render_template(
-        "enrollment.html",
+        "courses.html",
         term=term,
-        # titles=titles,
-        # rows=rows,
-        # courses=paginated_courses,
-        # current_page=page,
-        # total_pages=total_pages,
-        # items_per_page=items_per_page,
-        # total_items=total_items,
-        # show_results=show_results
+        departments=departments,
+        current_page=current_page,
+        total_pages=total_pages,
+        total_courses=total_courses,
+        items_per_page=per_page,
+        rows=rows,
+        titles=titles,
+        courses=courses
     )
-
 def add_class():
 
     return None
