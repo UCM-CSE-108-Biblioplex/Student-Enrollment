@@ -15,27 +15,27 @@ def requires_authentication(f):
     def decorated_function(*args, **kwargs):
         if(current_user.is_authenticated):
             g.user = current_user
+            return(f(*args, **kwargs))
 
         # requires authentication
         api_key = request.headers.get("X-API-Key", None)
-        if(not api_key and not current_user.is_authenticated):
+        if(not api_key):
             abort(Response("Authentication required.", 401))
         
         # api key authentication that will probably never get used lmao
-        if(api_key):
-            # no user id?
-            target_user_id = request.headers.get("X-User-ID", None)
-            if(not target_user_id):
-                abort(Response("User ID is required.", 400))
-            # no user?
-            target_user = User.query.get(target_user_id)
-            if(not target_user):
-                abort(Response("User not found", 404))
-                # is the key valid
-            key_checks = [cph(api_key, key.key) for key in target_user.api_keys]
-            if(not any(key_checks)):
-                abort(Response("Invalid API Key", 403))
-            g.user = target_user
+        # no user id?
+        target_user_id = request.headers.get("X-User-ID", None)
+        if(not target_user_id):
+            abort(Response("User ID is required.", 400))
+        # no user?
+        target_user = User.query.get(target_user_id)
+        if(not target_user):
+            abort(Response("User not found", 404))
+        # is the key valid
+        key_checks = [cph(api_key, key.key) for key in target_user.api_keys]
+        if(not any(key_checks)):
+            abort(Response("Invalid API Key", 403))
+        g.user = target_user
         return(f(*args, **kwargs))
     return(decorated_function)
 
@@ -200,7 +200,7 @@ def add_user_role(user_id):
     if is_htmx_request:
         db.session.refresh(target_user)
         request_from = request.form.get("from", None)
-        term = Term.query.filter_by(abbreviation=course.term)
+        term = Term.query.filter_by(abbreviation=course.term).first()
         try:
             current_page = max(int(request.args.get("page", 1)), 1)
         except:
@@ -223,7 +223,7 @@ def add_user_role(user_id):
                 current_page,
                 per_page
             ))
-        if(request_form == "site_admin.user_roles"):
+        if(request_from == "site_admin.user_roles"):
             current_assignments = target_user.get_role_assignments()
             all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
             assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
@@ -237,6 +237,7 @@ def add_user_role(user_id):
                 assignable_roles=assignable_roles,
                 modal_content_id=modal_content_id
             )
+        return("Unknown request origin.")
     else:
         formatted_assignments = [{"course": c.to_dict(), "role": r.to_dict()} for c, r in current_assignments]
         return jsonify({"message": f"Role assignment {operation_type}.", "user_id": user_id, "assignments": formatted_assignments}), 200
@@ -273,7 +274,7 @@ def remove_user_role(user_id, course_id):
     if is_htmx_request:
         db.session.refresh(target_user)
         request_from = request.form.get("from", None)
-        term = Term.query.filter_by(abbreviation=course.term)
+        term = Term.query.filter_by(abbreviation=deleted_course.term).first()
         try:
             current_page = max(int(request.args.get("page", 1)), 1)
         except:
@@ -296,7 +297,7 @@ def remove_user_role(user_id, course_id):
                 current_page,
                 per_page
             ))
-        if(request_form == "site_admin.user_roles"):
+        if(request_from == "site_admin.user_roles"):
             current_assignments = target_user.get_role_assignments()
             all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
             assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()

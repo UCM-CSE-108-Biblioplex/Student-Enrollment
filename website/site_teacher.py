@@ -2,7 +2,7 @@ from werkzeug.security import generate_password_hash as gph
 from werkzeug.security import check_password_hash as cph
 from flask import Blueprint, render_template, request, abort, Response, flash, redirect, url_for
 from flask_login import current_user, login_required
-from .models import User, Course, Role, roles
+from .models import User, Course, Role, roles, Term
 from urllib.parse import unquote
 from functools import wraps
 from sqlalchemy import select
@@ -12,8 +12,13 @@ from . import db
 site_teacher = Blueprint("site_teacher", __name__)
 
 @site_teacher.route("/Courses")
-@login_required # Ensure only logged-in users can access
+@login_required
 def courses():
+    return(render_template("instructor/select_term.html", terms=Term.query.all()))
+
+@site_teacher.route("/Courses/<string:term>")
+@login_required
+def courses_term(term):
     instructor_role = Role.query.filter_by(name="Instructor").first()
     if not instructor_role:
         flash("Instructor role not found in database.", "error")
@@ -35,6 +40,8 @@ def courses():
     titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
     rows = []
     for course in courses:
+        if(course.term != term):
+            continue
         resign_button = f"""
         <form>
         <input type="hidden" name="from" value="site_instructor.courses">

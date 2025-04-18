@@ -1,5 +1,7 @@
 from werkzeug.security import generate_password_hash as gph
 from flask import abort, Response, render_template, url_for
+from flask_login import current_user
+from sqlalchemy import select
 from urllib.parse import unquote
 
 from .models import *
@@ -627,11 +629,52 @@ def render_student_courses(student, term, page=1, per_page=50):
     total_courses = pagination.total
     total_pages = pagination.pages
 
-    titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Students"]
+    titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Students", "Add"]
     rows = []
     for course in courses:
         if(course.term != term.abbreviation):
             continue
+
+        existing_assignment = db.session.query(roles).filter(roles.c.user_id == current_user.id, roles.c.course_id == course.id).first()
+        if(course.get_students_with_grades().total >= course.maximum):
+            button = "<span>(Course Full)</span>"
+        elif(existing_assignment):
+            button = f'''
+                <form id="enroll-button">
+                <input type="hidden" name="from" value="site_enrollment.enroll_term">
+                <button 
+                    class="btn btn-danger" 
+                    hx-delete="{url_for("api_main.remove_user_role", user_id=current_user.id, course_id=course.id)}"
+                    hx-target="#catalog-content"
+                    hx-headers='{{"Accept": "text/html"}}'
+                    hx-swap="innerHTML">
+                    Leave
+                </button>
+                </form>'''
+        else:
+            button = f'''
+            <form id="enroll-button">
+            <input
+                type="hidden"
+                id="course-{course.id}-id"
+                name="course_id"
+                value="{course.id}">
+            <input
+                type="hidden"
+                id="course-{course.id}-id"
+                name="role_id"
+                value="{student_role_id}">
+            <input type="hidden" name="from" value="site_admin.user_roles">
+            <button 
+                class="btn btn-primary" 
+                hx-post="{url_for("api_main.add_user_role", user_id=current_user.id)}"
+                hx-target="#catalog-content"
+                hx-headers='{{"Accept": "text/html"}}'
+                hx-swap="innerHTML">
+                Enroll
+            </button>
+            </form>'''
+        
         rows.append([
             course.id,
             course.name,
@@ -640,10 +683,11 @@ def render_student_courses(student, term, page=1, per_page=50):
             course.session,
             course.units,
             f"{course.get_students_with_grades().total}/{course.maximum}",
+            button
         ])
 
     return render_template(
-        "enrollment/course_schedule.html",
+        "macros/enrollment/enrollment_content.html",
         courses=courses, # Pass the course objects
         rows=rows,
         titles=titles,

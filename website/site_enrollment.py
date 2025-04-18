@@ -13,7 +13,8 @@ def enrollment():
 @site_enrollment.route("/Classes")
 @login_required
 def classes():
-     return("Endpoint Incomplete", 404)
+    terms = Term.query.all()
+    return(render_template("enrollment/schedule_select_term.html", terms=terms))
 
 @site_enrollment.route("/Classes/<string:term>")
 @login_required
@@ -204,9 +205,9 @@ def enroll_term(term):
                 <button 
                     class="btn btn-danger" 
                     hx-delete="{url_for("api_main.remove_user_role", user_id=current_user.id, course_id=course.id)}"
-                    hx-target="#enroll-button"
+                    hx-target="#catalog-content"
                     hx-headers='{{"Accept": "text/html"}}'
-                    hx-swap="outerHTML">
+                    hx-swap="innerHTML">
                     Leave
                 </button>
                 </form>'''
@@ -223,12 +224,13 @@ def enroll_term(term):
                 id="course-{course.id}-id"
                 name="role_id"
                 value="{student_role_id}">
+            <input type="hidden" name="from" value="site_enrollment.enroll_term">
             <button 
                 class="btn btn-primary" 
                 hx-post="{url_for("api_main.add_user_role", user_id=current_user.id)}"
-                hx-target="#enroll-button"
+                hx-target="#catalog-content"
                 hx-headers='{{"Accept": "text/html"}}'
-                hx-swap="outerHTML">
+                hx-swap="innerHTML">
                 Enroll
             </button>
             </form>'''
