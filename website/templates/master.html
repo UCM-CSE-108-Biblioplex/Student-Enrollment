@@ -40,7 +40,7 @@
 		</div>
 	</div>
 	{% endif %}
-	{% if current_user.is_instructor() %}
+	{% if current_user.is_authenticated and current_user.is_instructor() %}
 	<div class="topnav-dropdown">
 		<button class="topnav-dropbtn">Instructors</button>
 		<div class="dropdown-content">
