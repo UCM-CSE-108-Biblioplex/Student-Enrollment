@@ -27,7 +27,7 @@ def courses():
         per_page = max(int(request.args.get("per_page", 50)), 1)
     except:
         per_page = 50
-    pagination = current_user.get_courses_role(instructor_role)
+    pagination = current_user.get_courses_role(instructor_role, current_page, per_page)
     courses = pagination.items
     total_courses = pagination.total
     total_pages = pagination.pages
@@ -36,14 +36,17 @@ def courses():
     rows = []
     for course in courses:
         resign_button = f"""
+        <form>
+        <input type="hidden" name="from" value="site_instructor.courses">
         <button class="btn btn-danger btn-sm"
-                hx-delete="{url_for('api_main.remove_user_role', user_id=instructor_user.id, course_id=course.id)}"
+                hx-delete="{url_for('api_main.remove_user_role', user_id=current_user.id, course_id=course.id)}"
                 hx-target="#courses-content"
                 hx-swap="innerHTML"
                 hx-headers='{{"Accept": "text/html"}}'
                 hx-confirm="Are you sure you want to resign from {course.dept} {course.number}?">
             Resign
         </button>
+        </form>
         """
         name = f"""<a href="{url_for("site_teacher.manage_course", course_id=course.id)}">{course.name}</a>"""
         rows.append([

@@ -26,6 +26,8 @@
                         <td>{{ course.dept }} {{ course.number }} - {{ course.name }} ({{ course.term }})</td>
                         <td>{{ role.name }}</td>
                         <td>
+                            <form>
+                            <input type="hidden" id="course-{course.id}-resign" name="from" value="site_admin.user_roles">
                             <button class="btn btn-danger btn-sm"
                                     hx-delete="{{ url_for('api_main.remove_user_role', user_id=user.id, course_id=course.id) }}"
                                     hx-target="#{{ modal_content_id }}" {# Target the unique content div #}
@@ -35,6 +37,7 @@
                                 {{ htmx_indicator(type="spinner", size="sm") }}
                                 Remove
                             </button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}

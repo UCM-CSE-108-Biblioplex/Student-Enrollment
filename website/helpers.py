@@ -550,17 +550,23 @@ def render_admin_users(users, current_page, total_pages, total_users, per_page):
         items_per_page=per_page
     )
 
-def render_instructor_courses(instructor, current_page, per_page):
+def render_instructor_courses(instructor, term, current_page, per_page):
     titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
     rows = []
 
-    pagination = instructor.get_courses_role(current_page, per_page)
+    instructor_role = Role.query.filter_by(name="Instructor").first()
+
+    pagination = instructor.get_courses_role(instructor_role, current_page, per_page)
     total_pages = pagination.pages
     total_courses = pagination.total
     courses = pagination.items
 
     for course in courses:
+        if(course.term != term.abbreviation):
+            continue
         resign_button = f"""
+        <form>
+        <input type="hidden" name="from" value="site_instructor.courses">
         <button class="btn btn-danger btn-sm"
             hx-delete="{url_for('api_main.remove_user_role', user_id=instructor.id, course_id=course.id)}"
             hx-target="#courses-content"
@@ -569,6 +575,7 @@ def render_instructor_courses(instructor, current_page, per_page):
             hx-confirm="Are you sure you want to resign from {course.dept} {course.number}?">
             Resign
         </button>
+        </form>
         """
         rows.append([
             course.id,
@@ -603,6 +610,48 @@ def is_instructor_for_course(user, course_id):
         )
     ).first()
     return assignment is not None
+
+def render_student_courses(student, term, page=1, per_page=50):
+    student_role = Role.query.filter_by(name="Student").first()
+
+    try:
+        current_page = int(request.args.get("current_page", 1))
+    except:
+        current_page = 1
+    try:
+        per_page = request.args.get("per_page", 50)
+    except:
+        per_page = 50
+    pagination = current_user.get_courses_role(student_role, current_page, per_page)
+    courses = pagination.items
+    total_courses = pagination.total
+    total_pages = pagination.pages
+
+    titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Students"]
+    rows = []
+    for course in courses:
+        if(course.term != term.abbreviation):
+            continue
+        rows.append([
+            course.id,
+            course.name,
+            course.dept,
+            course.number,
+            course.session,
+            course.units,
+            f"{course.get_students_with_grades().total}/{course.maximum}",
+        ])
+
+    return render_template(
+        "enrollment/course_schedule.html",
+        courses=courses, # Pass the course objects
+        rows=rows,
+        titles=titles,
+        current_page=current_page,
+        total_pages=total_pages,
+        total_courses=total_courses,
+        items_per_page=per_page
+    )
 
 def render_users(users_, current_page, total_pages, total_users, per_page):
     def parse_name(user):

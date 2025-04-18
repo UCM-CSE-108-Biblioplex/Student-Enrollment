@@ -28,7 +28,7 @@ def classes_term(term):
         per_page = request.args.get("per_page", 50)
     except:
         per_page = 50
-    pagination = current_user.get_courses_role(student_role, current_page, 50)
+    pagination = current_user.get_courses_role(student_role, current_page, per_page)
     courses = pagination.items
     total_courses = pagination.total
     total_pages = pagination.pages
@@ -200,16 +200,7 @@ def enroll_term(term):
         elif(existing_assignment):
             button = f'''
                 <form id="enroll-button">
-                <input
-                    type="hidden"
-                    id="course-{course.id}-id"
-                    name="course_id"
-                    value="{course.id}">
-                <input
-                    type="hidden"
-                    id="course-{course.id}-id"
-                    name="role_id"
-                    value="{student_role_id}">
+                <input type="hidden" name="from" value="site_enrollment.enroll_term">
                 <button 
                     class="btn btn-danger" 
                     hx-delete="{url_for("api_main.remove_user_role", user_id=current_user.id, course_id=course.id)}"

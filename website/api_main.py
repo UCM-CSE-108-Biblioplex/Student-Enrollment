@@ -198,10 +198,37 @@ def add_user_role(user_id):
     current_assignments = target_user.get_role_assignments()
 
     if is_htmx_request:
-        if(not role.name == "Student"):
+        db.session.refresh(target_user)
+        request_from = request.form.get("from", None)
+        term = Term.query.filter_by(abbreviation=course.term)
+        try:
+            current_page = max(int(request.args.get("page", 1)), 1)
+        except:
+            current_page = 1
+        try:
+            per_page = max(int(request.args.get("per_page", 50)), 1)
+        except:
+            per_page = 50
+        if(request_from == "site_instructor.courses"):
+            return(render_instructor_courses(
+                current_user,
+                term,
+                current_page,
+                per_page
+            ))
+        if(request_from == "site_enrollment.enroll_term"):
+            return(render_student_courses(
+                current_user,
+                term,
+                current_page,
+                per_page
+            ))
+        if(request_form == "site_admin.user_roles"):
+            current_assignments = target_user.get_role_assignments()
             all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
             assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
             modal_content_id = f'user-roles-modal-content-{user_id}'
+            # *** RENDER THE SPECIFIC TEMPLATE ***
             return render_template(
                 "render_user_roles_content.html",
                 user=target_user,
@@ -209,29 +236,6 @@ def add_user_role(user_id):
                 all_courses=all_courses,
                 assignable_roles=assignable_roles,
                 modal_content_id=modal_content_id
-            )
-        else:
-            return(f'''
-                <form id="enroll-button">
-                <input
-                    type="hidden"
-                    id="course-{course.id}-id"
-                    name="course_id"
-                    value="{course.id}">
-                <input
-                    type="hidden"
-                    id="course-{course.id}-id"
-                    name="role_id"
-                    value="{role.id}">
-                <button 
-                    class="btn btn-danger" 
-                    hx-delete="{url_for("api_main.remove_user_role", user_id=current_user.id, course_id=course.id)}"
-                    hx-target="#enroll-button"
-                    hx-headers='{{"Accept": "text/html"}}'
-                    hx-swap="outerHTML">
-                    Leave
-                </button>
-                </form>'''
             )
     else:
         formatted_assignments = [{"course": c.to_dict(), "role": r.to_dict()} for c, r in current_assignments]
@@ -268,49 +272,45 @@ def remove_user_role(user_id, course_id):
 
     if is_htmx_request:
         db.session.refresh(target_user)
-        if(deleted_role.name == "Instructor"):
-            if g.user.id == user_id and not g.user.is_admin:
-                instructor_role = Role.query.filter_by(name="Instructor").first()
-                courses = target_user.get_courses_role(instructor_role)
-                # Render the full instructor content macro/template directly
-                return render_instructor_courses(target_user, 1, 50)
-            else: # Admin removal
-                current_assignments = target_user.get_role_assignments()
-                all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
-                assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
-                modal_content_id = f'user-roles-modal-content-{user_id}'
-                # *** RENDER THE SPECIFIC TEMPLATE ***
-                return render_template(
-                    "render_user_roles_content.html",
-                    user=target_user,
-                    current_assignments=current_assignments,
-                    all_courses=all_courses,
-                    assignable_roles=assignable_roles,
-                    modal_content_id=modal_content_id
-                )
-        else:
-            return(f'''
-                <form id="enroll-button">
-                <input
-                    type="hidden"
-                    id="course-{deleted_course.id}-id"
-                    name="course_id"
-                    value="{deleted_course.id}">
-                <input
-                    type="hidden"
-                    id="course-{deleted_course.id}-id"
-                    name="role_id"
-                    value="{deleted_role.id}">
-                <button 
-                    class="btn btn-primary" 
-                    hx-post="{url_for("api_main.add_user_role", user_id=current_user.id)}"
-                    hx-target="#enroll-button"
-                    hx-headers='{{"Accept": "text/html"}}'
-                    hx-swap="outerHTML">
-                    Enroll
-                </button>
-                </form>'''
+        request_from = request.form.get("from", None)
+        term = Term.query.filter_by(abbreviation=course.term)
+        try:
+            current_page = max(int(request.args.get("page", 1)), 1)
+        except:
+            current_page = 1
+        try:
+            per_page = max(int(request.args.get("per_page", 50)), 1)
+        except:
+            per_page = 50
+        if(request_from == "site_instructor.courses"):
+            return(render_instructor_courses(
+                current_user,
+                term,
+                current_page,
+                per_page
+            ))
+        if(request_from == "site_enrollment.enroll_term"):
+            return(render_student_courses(
+                current_user,
+                term,
+                current_page,
+                per_page
+            ))
+        if(request_form == "site_admin.user_roles"):
+            current_assignments = target_user.get_role_assignments()
+            all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
+            assignable_roles = Role.query.filter(Role.name.in_(['Student', 'Instructor', 'TA'])).all()
+            modal_content_id = f'user-roles-modal-content-{user_id}'
+            # *** RENDER THE SPECIFIC TEMPLATE ***
+            return render_template(
+                "render_user_roles_content.html",
+                user=target_user,
+                current_assignments=current_assignments,
+                all_courses=all_courses,
+                assignable_roles=assignable_roles,
+                modal_content_id=modal_content_id
             )
+        return("Unknown request origin")
     else:
         # Return JSON (unchanged)
         if not hasattr(Role, 'to_dict'):
