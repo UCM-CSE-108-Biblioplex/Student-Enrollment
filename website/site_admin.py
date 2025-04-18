@@ -298,9 +298,10 @@ def courses():
             course.number,
             course.session,
             course.units,
+            f"{course.get_students_with_grades().total}/{course.maximum}",
             actions
         ])
-    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
+    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Students", "Actions"]
 
     depts = [d for d in Department.query.order_by(Department.abbreviation).all()]
     terms = [t for t in Term.query.order_by(Term.index).all()]
