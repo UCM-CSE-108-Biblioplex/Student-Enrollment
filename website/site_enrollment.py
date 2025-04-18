@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request
-from flask_login import login_required
-from .models import Course, Term, Department
+from flask import Blueprint, render_template, request, url_for
+from flask_login import login_required, current_user
+from .models import Course, Term, Department, Role, roles
+from sqlalchemy import select
+from . import db
 
 site_enrollment = Blueprint("site_enrollment", __name__, url_prefix="/enrollment")
 
@@ -18,29 +20,10 @@ def enrollment():
     #   - go to enrollment tool
     return("Endpoint Incomplete", 404)
 
-@site_enrollment.route("/Classes")
-@login_required
-def classes():
-    # just a page with links to different
-    # site_enrollment.classes_term endpoints
-    # maybe use a dropdown; maybe use a carousel; idk
-     return("Endpoint Incomplete", 404)
-
-@site_enrollment.route("/Classes/<string:term>")
-@login_required
-def classes_term(term):
-    # returns a calendar displaying term schedule
-    #   - contains class schedule + lectures
-    #   - ability to download for input into Google
-    #       Calendare, etc. would be nice
-    # also returns a list of enrolled classes
-    # has link to enroll in courses for this term
-    return("Endpoint Incomplete", 404)
-
-@site_enrollment.route("/catalog")
+@site_enrollment.route("/Catalog")
 def catalog():
     terms = Term.query.all()
-    return(render_template("enrollment/catalog.html", terms=terms))
+    return(render_template("catalog/catalog.html", terms=terms))
 
 
 # returns a list of courses offered
@@ -49,7 +32,7 @@ def catalog():
 #   - includes Dates/Times of classes, exams
 #       - hovercard w/ calendar element would be neat
 #   - includes level of enrollment, waitlist availability
-@site_enrollment.route("/catalog/<string:term>", methods = ['POST', 'GET'])
+@site_enrollment.route("/Catalog/<string:term>", methods = ['POST', 'GET'])
 def catalog_term(term):
     term = Term.query.filter_by(abbreviation=term).first_or_404()
     departments = Department.query.order_by(Department.abbreviation).all()
@@ -109,7 +92,7 @@ def catalog_term(term):
         ])
 
     return render_template(
-        "courses.html",
+        "catalog/courses.html",
         term=term,
         departments=departments,
         current_page=current_page,
@@ -128,7 +111,7 @@ def enroll():
     # site_enrollment.enroll_term endpoints
     # maybe use a carousel; maybe use a dropdown; idk
     terms = Term.query.all()
-    return(render_template("enrollment/enrollment.html", terms=terms))
+    return(render_template("enrollment/enroll.html", terms=terms))
 
 
 # likely includes reuised components from
@@ -185,8 +168,53 @@ def enroll_term(term):
 
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Add"]
     rows = []
+    student_role_id = Role.query.filter_by(name="Student").first().id
     for course in courses:
-        button = f'<button class="btn btn-primary">Enroll</button>'
+        existing_assignment = db.session.query(roles).filter(roles.c.user_id == current_user.id, roles.c.course_id == course.id).first()
+        if(existing_assignment):
+            button = f'''
+                <form id="enroll-button">
+                <input
+                    type="hidden"
+                    id="course-{course.id}-id"
+                    name="course_id"
+                    value="{course.id}">
+                <input
+                    type="hidden"
+                    id="course-{course.id}-id"
+                    name="role_id"
+                    value="{student_role_id}">
+                <button 
+                    class="btn btn-danger" 
+                    hx-delete="{url_for("api_main.remove_user_role", user_id=current_user.id, course_id=course.id)}"
+                    hx-target="#enroll-button"
+                    hx-headers='{{"Accept": "text/html"}}'
+                    hx-swap="outerHTML">
+                    Leave
+                </button>
+                </form>'''
+        else:
+            button = f'''
+            <form id="enroll-button">
+            <input
+                type="hidden"
+                id="course-{course.id}-id"
+                name="course_id"
+                value="{course.id}">
+            <input
+                type="hidden"
+                id="course-{course.id}-id"
+                name="role_id"
+                value="{student_role_id}">
+            <button 
+                class="btn btn-primary" 
+                hx-post="{url_for("api_main.add_user_role", user_id=current_user.id)}"
+                hx-target="#enroll-button"
+                hx-headers='{{"Accept": "text/html"}}'
+                hx-swap="outerHTML">
+                Enroll
+            </button>
+            </form>'''
         modal_html =  f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>"""
         rows.append([
             course.id,
@@ -201,7 +229,7 @@ def enroll_term(term):
 
 
     return render_template(
-        "courses.html",
+        "enrollment/courses.html",
         term=term,
         departments=departments,
         current_page=current_page,

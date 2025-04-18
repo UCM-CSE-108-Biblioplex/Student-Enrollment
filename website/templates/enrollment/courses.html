@@ -15,7 +15,7 @@
     <div class="d-flex justify-content-between align-items-center mb-8">
         <h2 class="mt-8 fw-bold">Enter Your Search Criteria</h2>
         <h5>Term: {{ term.name|title }}</h5>
-        <a href="{{ url_for('site_enrollment.catalog')}}">
+        <a href="{{ url_for('site_enrollment.enroll')}}">
             <button class="mt-4 btn btn-primary" type="button">Select New Term</button>
         </a>
     </div>
@@ -62,7 +62,7 @@
     </div>
 
     <div id="catalog-content" class="mt-8">
-        {% include "macros/enrollment/catalog_content.html" %}
+        {% include "macros/enrollment/enrollment_content.html" %}
     </div>
 </div>
       
