@@ -7,10 +7,10 @@ UC Merced CSE 108 Lab 8 Group Project
 ### For grades
 
 - [X] ~~Login View~~ (20pts)
-- [ ] See all *my* classes (20pts)
-- [ ] See all offered classes (20pts)
-- [ ] See number of students in class (20pts)
-- [ ] Sign up for another, non-full class (20pts)
+- [X] ~~See all *my* classes~~ (20pts)
+- [X] ~~See all offered classes~~ (20pts)
+- [X] ~~See number of students in class~~~ (20pts)
+- [X] ~~Sign up for another, non-full class~~~ (20pts)
 - [X] ~~Web app design~~ (20pts)
     - I think out app looks pretty good, esp, considering we're not designers
 - [X] ~~Presentation clarity~~ (20pts)
@@ -23,7 +23,7 @@ UC Merced CSE 108 Lab 8 Group Project
     - [X] ~~See all students enrolled & grades~~ (20pts)
     - [X] ~~edit grades for students~ (20pts)
 
-Current est. Score: 200/300 (66.67%)
+Current est. Score: 300/300 (100%)
 
 ### Student Functionality
 

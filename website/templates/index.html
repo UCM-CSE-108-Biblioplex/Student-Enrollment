@@ -11,7 +11,9 @@
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         </div>
         <div class="card-footer">
-            <button class="btn btn-primary">Learn More</button>
+            <a href = "{{url_for('site_enrollment.enroll')}}">
+                <button class="btn btn-primary">Enroll Courses</button>
+            </a>
         </div>
         </div>
         
@@ -22,18 +24,20 @@
         </div>
         <div class="card-footer">
             <a href ="{{url_for('site_enrollment.catalog')}}">
-                <button class="btn btn-primary">Learn More</button>
+                <button class="btn btn-primary">View Courses</button>
             </a>
         </div>
         </div>
         
         <div class="card">
-        <div class="card-header">Feature Three</div>
+        <div class="card-header">View Class Schedule</div>
         <div class="card-body">
             Nullam efficitur tortor at magna placerat, eget congue orci imperdiet.
         </div>
         <div class="card-footer">
-            <button class="btn btn-primary">Learn More</button>
+            <a href ="{{url_for('site_enrollment.classes_term', term='S25')}}">
+                <button class="btn btn-primary">View Schedule</button>
+            </a>
         </div>
         </div>
     </div>

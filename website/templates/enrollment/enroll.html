@@ -1,0 +1,26 @@
+{% extends "master.html" %}
+
+{% block head %}
+<script defer src="{{ url_for('static', filename='js/term_carousel.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1 class="mb-4 mt-8">Select A Term</h1>
+    <div class="slider-container">
+        {% for term in terms %}
+        <div class="card card-slider">
+        <div class="card-header">{{ term.name }} ({{ term.abbreviation }})</div>
+        <div class="card-body">{{ term.name }} at UC Merced</div>
+        <div class="card-footer">
+            <a href="{{ url_for('site_enrollment.enroll_term', term=term.abbreviation) }}">
+                <button class="btn btn-primary">See Courses</button>
+            </a>
+        </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class = "btn btn-primary" id = "next">></button>
+    <button class = "btn btn-primary" id = "prev"><</button>
+</div>
+{% endblock %}

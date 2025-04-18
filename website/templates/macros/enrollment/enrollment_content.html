@@ -1,0 +1,78 @@
+{% from "macros/table.html" import table %}
+{% from "macros/pagination.html" import pagination %}
+{% from "macros/modal.html" import modal_shell %}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#catalog-content',
+    items_per_page=items_per_page,
+    total_items=total_courses,
+    base_url="/api/v1/catalog?page="
+) }}
+
+{# Table component #}
+{{ table("catalog-table", rows, titles) }}
+
+{# Pagination component #}
+{{ pagination(
+    current_page=current_page,
+    total_pages=total_pages,
+    hx_target='#catalog-content',
+    items_per_page=items_per_page,
+    total_items=total_courses,
+    base_url="/api/v1/catalog?page="
+) }}
+
+{# Modal definitions #}
+{% for course in courses %}
+    {% set trigger_id="course-" ~ course.id ~ "-modal" %}
+
+    {% set trigger_html %}
+    <span id="{{ trigger_id }}" class="hidden"></span>
+    {% endset %}
+
+    {% set content_html %}
+    <div x-data="param" x-init="updateURLParam ('page', {{ current_page or 1 }})">
+        <div class="form-group">
+            <h3>Term: {{ course.term }}</h3>
+        </div>
+
+        <div class="form-group">
+            <h3>Name: {{ course.name }}</h3>
+        </div>
+
+        <div class="form-group">
+            <h3>Department: {{ course.department }}</h3>
+        </div>
+
+        <div class="form-group">
+            <h3>Course Number: {{ course.number }}</h3>
+        </div>
+
+        <div class="form-group">
+            <h3>Course Session: {{ course.session }}</h3>
+        </div>
+
+        <div class="form-group">
+            <h3>Course Units: {{ course.units }}</h3>
+        </div>
+
+        <input type="hidden" name="course_id" id="course-{{ course.id }}-id" value="{{ course.id }}">
+    </div>
+    {% endset %}
+
+    {% set footer_html %}
+    <button class="btn" @click="open = false">Close</button>
+    {% endset %}
+
+    {{ modal_shell(
+        id='course-modal-' ~ course.id,
+        trigger_html=trigger_html,
+        title='Course Details: ' ~ course.name,
+        content_html=content_html,
+        footer_html=footer_html,
+        size='md'
+    ) }}
+{% endfor %}
