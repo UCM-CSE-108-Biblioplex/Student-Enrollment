@@ -128,7 +128,7 @@ def enroll():
     # site_enrollment.enroll_term endpoints
     # maybe use a carousel; maybe use a dropdown; idk
     terms = Term.query.all()
-    return(render_template("enrollment/catalog.html", terms=terms))
+    return(render_template("enrollment/enrollment.html", terms=terms))
 
 
 # likely includes reuised components from
@@ -186,16 +186,19 @@ def enroll_term(term):
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Add"]
     rows = []
     for course in courses:
+        button = f'<button class="btn btn-primary">Enroll</button>'
+        modal_html =  f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>"""
         rows.append([
             course.id,
             course.term,
-            f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>""",
+            modal_html,
             course.dept,
             course.number,
             course.session,
             course.units,
-            f'<button class="btn btn-primary">Enroll</button>'
-        ])
+            button
+    ])
+
 
     return render_template(
         "courses.html",
