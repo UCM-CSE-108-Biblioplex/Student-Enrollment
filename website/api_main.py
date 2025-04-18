@@ -419,7 +419,9 @@ def add_user_role(user_id):
 
     # only admins can assign non-student roles
     if(role.name != "Student" and not g.user.is_admin):
-            abort(Response("Insufficient permissions.", 403))
+        abort(Response("Insufficient permissions.", 403))
+    if(role.name == "Student" and course.get_students_with_grades.total() >= course.maximum):
+        abort(Response("Course full.", 403))
     
     existing_assignment = db.session.execute(select(roles).where(roles.c.user_id == user_id, roles.c.course_id == course_id)).first()
     try:
@@ -992,11 +994,16 @@ def update_student_grade(course_id, student_id):
     if not is_instructor_for_course(g.user, course_id) and not g.user.is_admin:
         abort(Response("Insufficient permissions. Must be instructor for this course.", 403))
     new_grade = request.form.get("grade")
-    if new_grade is None: abort(Response("Grade value is required.", 400))
+    if new_grade is None:
+        abort(Response("Grade value is required.", 400))
+
     student_role = Role.query.filter_by(name="Student").first()
-    if not student_role: abort(Response("Student role definition not found.", 500))
+    if not student_role:
+        abort(Response("Student role definition not found.", 500))
+
     assignment = db.session.execute(select(roles).where(roles.c.user_id == student_id, roles.c.course_id == course_id, roles.c.role_id == student_role.id)).first()
-    if not assignment: abort(Response("Student enrollment record not found for this course.", 404))
+    if not assignment:
+        abort(Response("Student enrollment record not found for this course.", 404))
     try:
         stmt = update(roles).where(roles.c.user_id == student_id, roles.c.course_id == course_id).values(grade=new_grade if new_grade != "" else None)
         db.session.execute(stmt)

@@ -74,6 +74,7 @@ class Course(db.Model):
     number = db.Column(db.String(7), nullable=False)
     session = db.Column(db.String(7), nullable=False)
     units = db.Column(db.Integer, nullable=False)
+    maxmimum = db.Column(db.Integer)
 
     users = db.relationship(
         "User", secondary="roles", back_populates="courses"
@@ -84,7 +85,7 @@ class Course(db.Model):
     prerequisites = db.relationship("CoursePrerequisite", backref="course")
     corequisites = db.relationship("CourseCorequisite", backref="course")
 
-    def get_students_with_grades(self, page=1, per_page=20):
+    def get_students_with_grades(self, page=1, per_page=50):
         """
         Fetches paginated students enrolled in this course along with their grades.
         Returns a SQLAlchemy Pagination object.
