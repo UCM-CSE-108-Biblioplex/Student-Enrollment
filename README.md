@@ -24,29 +24,3 @@ UC Merced CSE 108 Lab 8 Group Project
     - [X] ~~edit grades for students~ (20pts)
 
 Current est. Score: 300/300 (100%)
-
-### Student Functionality
-
-- [X] ~~login/logout~~
-- [ ] view classes enrolled
-- [ ] view course catalog
-- [ ] see enrollment number in a given class
-- [ ] enroll in class
-
-### Teacher Functionality
-
-- [X] ~~login/logout~~
-- [ ] view classes teaching
-- [ ] see students enrolled in given class
-- [ ] see grades in given class
-- [ ] edit grades for a student
-
-### Admin Functionality
-
-- [X] ~~login/logout~~
-- [X] edit all data in database
-- [ ] Admin page
-    - [X] ~~Users~~
-    - [X] ~~Courses~~
-    - [ ] Roles
-    - [ ] API Keys (Stretch Goal)
