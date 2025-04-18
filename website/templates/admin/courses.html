@@ -1,7 +1,7 @@
 {% extends "master.html" %}
 
 {% block head %}
-<script src="{{ url_for('static', filename='js/admin_tables.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tables.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -33,7 +33,7 @@
 
         <div class="form-group">
             <label for="course-new-name">Name:</label>
-            <input class="form-input" type="text" id="course-new-name" name="name" placeholder="Course Name">
+            <input class="form-input" type="text" id="course-new-name" name="name" placeholder="Course Name" required>
         </div>
 
         <div class="form-group">
@@ -47,22 +47,22 @@
 
         <div class="form-group">
             <label for="course-new-number">Course Number:</label>
-            <input class="form-input" type="text" id="course-new-number" name="number" placeholder="Course Number">
+            <input class="form-input" type="text" id="course-new-number" name="number" placeholder="Course Number" required>
         </div>
 
         <div class="form-group">
             <label for="course-new-session">Course Session:</label>
-            <input class="form-input" type="text" id="course-new-id" name="session" placeholder="Course Session">
+            <input class="form-input" type="text" id="course-new-id" name="session" placeholder="Course Session" required>
         </div>
 
         <div clas="form-group">
             <label for="course-new-units">Course Units:</label>
-            <input class="form-input" type="number" id="course-new-units" name="units" placeholder="Course Units">
+            <input class="form-input" type="number" id="course-new-units" name="units" placeholder="Course Units" required>
         </div>
 
         <div class="form-group">
             <label for="course-max-students">Maximum Students:</label>
-            <input class="form-input" type="number" id="course-max-students" name="max" placeholder="Maximum Students">
+            <input class="form-input" type="number" id="course-max-students" name="max" placeholder="Maximum Students" required>
         </div>
     </form>
     {% endset %}

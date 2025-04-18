@@ -13,7 +13,7 @@
         <div class="card-header">{{ term.name }} ({{ term.abbreviation }})</div>
         <div class="card-body">{{ term.name }} at UC Merced</div>
         <div class="card-footer">
-            <a href="{{ url_for('site_enrollment.catalog_term', term=term.abbreviation) }}">
+            <a href="{{ url_for('site_enrollment.classes_term', term=term.abbreviation) }}">
                 <button class="btn btn-primary">See Courses</button>
             </a>
         </div>
