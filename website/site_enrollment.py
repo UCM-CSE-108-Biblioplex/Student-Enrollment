@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, url_for
-from flask_login import login_required, current_user
-from .models import Course, Term, Department, Role, roles
+from flask_login import login_required, current_user, current_user
+from .models import Course, Term, Department, Role, Role, roles
 from sqlalchemy import select
 from . import db
 
@@ -19,6 +19,59 @@ def enrollment():
     #       - includes available seats, waitlist slots
     #   - go to enrollment tool
     return("Endpoint Incomplete", 404)
+
+@site_enrollment.route("/Classes")
+@login_required
+def classes():
+    # just a page with links to different
+    # site_enrollment.classes_term endpoints
+    # maybe use a dropdown; maybe use a carousel; idk
+     return("Endpoint Incomplete", 404)
+
+@site_enrollment.route("/Classes/<string:term>")
+@login_required
+def classes_term(term):
+    # returns a calendar displaying term schedule
+    #   - contains class schedule + lectures
+    #   - ability to download for input into Google
+    #       Calendare, etc. would be nice
+    # also returns a list of enrolled classes
+    # has link to enroll in courses for this term
+
+    student_role = Role.query.filter_by(name="Student").first()
+
+    student_courses = current_user.get_courses_role(student_role)
+
+    titles = ["ID", "Name", "Department", "Number", "Session", "Units"]
+
+    rows = []
+
+    for course in student_courses:
+        rows.append([
+                    course.id,
+                    course.name,
+                    course.dept,
+                    course.number,
+                    course.session,
+                    course.units
+                ])
+
+    # Simplified pagination data since we're showing all courses for the instructor
+    current_page = 1
+    total_courses = len(student_courses)
+    items_per_page = total_courses if total_courses > 0 else 1 # Avoid division by zero
+    total_pages = 1
+
+    return render_template(
+        "enrollment/course_schedule.html",
+        courses=student_courses, # Pass the course objects
+        rows=rows,
+        titles=titles,
+        current_page=current_page,
+        total_pages=total_pages,
+        total_courses=total_courses,
+        items_per_page=items_per_page
+    )
 
 @site_enrollment.route("/Catalog")
 def catalog():
