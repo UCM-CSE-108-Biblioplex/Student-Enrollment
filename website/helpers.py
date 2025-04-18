@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash as gph
-from flask import abort, Response, render_template
+from flask import abort, Response, render_template, url_for
 from urllib.parse import unquote
 
 from .models import *
@@ -603,3 +603,41 @@ def is_instructor_for_course(user, course_id):
         )
     ).first()
     return assignment is not None
+
+def render_users(users_, current_page, total_pages, total_users, per_page):
+    def parse_name(user):
+        name = user.first_name + " "
+        if(user.middle_name):
+            name += user.middle_name
+            name += " "
+        name += user.last_name
+        return(name)
+
+    rows = []
+    for user in users_:
+        actions = render_template(
+            "macros/admin/actions.html",
+            model=user,
+            endpoint=url_for("api_main.users"),
+            model_type="user"
+        )
+        rows.append([
+            user.id,
+            user.username,
+            parse_name(user),
+            user.email,
+            "Yes" if user.is_admin else "No",
+            actions
+        ])
+
+    titles = ["ID", "Username", "Name", "Email", "Admin", "Actions"]
+    return render_template(
+        "macros/admin/users_content.html", 
+        users=users_,
+        rows=rows,
+        titles=titles,
+        current_page=current_page,
+        total_pages=total_pages,
+        total_users=total_users,
+        items_per_page=per_page
+    )

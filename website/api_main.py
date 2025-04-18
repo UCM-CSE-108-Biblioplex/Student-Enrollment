@@ -148,7 +148,7 @@ def users():
 @requires_authentication
 def add_user_role(user_id):
     # ... (permission checks, data validation, database logic - unchanged) ...
-    if not g.user.is_admin or not g.user.id == user_id: 
+    if not g.user.is_admin and not g.user.id == user_id: 
         abort(Response("Insufficient permissions.", 403))
     target_user = User.query.get_or_404(user_id)
     course_id = request.form.get("course_id")
