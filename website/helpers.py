@@ -326,6 +326,12 @@ def edit_course(request):
             target_course.units = int(units)
         except:
             abort(Response("Invalid course units.", 400))
+    maximum = data.get("max", None)
+    if(maximum):
+        try:
+            target_course.maximum = int(maximum)
+        except:
+            abort(Response("Invalid course maximum.", 400))
     
     user_ids = data.get("user_ids", [])
     if(type(user_ids) != list and user_ids is not None):
@@ -478,7 +484,7 @@ def get_departments(request):
     return(departments_, current_page, total_pages, total_departments, per_page)
 
 def render_courses(courses, current_page, total_pages, total_courses, per_page):
-    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
+    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Students", "Actions"]
     rows = []
 
     for course in courses:
@@ -496,6 +502,7 @@ def render_courses(courses, current_page, total_pages, total_courses, per_page):
             course.number,
             course.session,
             course.units,
+            f"{course.get_students_with_grades().total}/{course.maximum}",
             actions
         ])
     depts = [d for d in Department.query.all()]
