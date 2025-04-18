@@ -782,7 +782,8 @@ def render_student_courses(student, term, page=1, per_page=50):
                     hx-delete="{url_for("api_main.remove_user_role", user_id=current_user.id, course_id=course.id)}"
                     hx-target="#catalog-content"
                     hx-headers='{{"Accept": "text/html"}}'
-                    hx-swap="innerHTML">
+                    hx-swap="innerHTML"
+                    hx-confirm="Are you sure you want to leave this course?">
                     Leave
                 </button>
                 </form>'''
