@@ -6,72 +6,55 @@ from . import db
 
 site_enrollment = Blueprint("site_enrollment", __name__, url_prefix="/enrollment")
 
-@site_enrollment.route("/Test")
-def test():
-    return("Endpoint Incomplete", 404)
-
 @site_enrollment.route("/")
 def enrollment():
-    # Options are
-    #   - see enrolled classes (select term)
-    #   - see available classes (select term)
-    #       - includes # of enrolled students
-    #       - includes available seats, waitlist slots
-    #   - go to enrollment tool
     return("Endpoint Incomplete", 404)
 
 @site_enrollment.route("/Classes")
 @login_required
 def classes():
-    # just a page with links to different
-    # site_enrollment.classes_term endpoints
-    # maybe use a dropdown; maybe use a carousel; idk
      return("Endpoint Incomplete", 404)
 
 @site_enrollment.route("/Classes/<string:term>")
 @login_required
 def classes_term(term):
-    # returns a calendar displaying term schedule
-    #   - contains class schedule + lectures
-    #   - ability to download for input into Google
-    #       Calendare, etc. would be nice
-    # also returns a list of enrolled classes
-    # has link to enroll in courses for this term
-
     student_role = Role.query.filter_by(name="Student").first()
 
-    student_courses = current_user.get_courses_role(student_role)
+    try:
+        current_page = int(request.args.get("current_page", 1))
+    except:
+        current_page = 1
+    try:
+        per_page = request.args.get("per_page", 50)
+    except:
+        per_page = 50
+    pagination = current_user.get_courses_role(student_role, current_page, 50)
+    courses = pagination.items
+    total_courses = pagination.total
+    total_pages = pagination.pages
 
     titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Students"]
-
     rows = []
-
-    for course in student_courses:
+    for course in courses:
         rows.append([
-                    course.id,
-                    course.name,
-                    course.dept,
-                    course.number,
-                    course.session,
-                    course.units,
-                    f"{course.get_students_with_grades().total}/{course.maximum}",
-                ])
-
-    # Simplified pagination data since we're showing all courses for the instructor
-    current_page = 1
-    total_courses = len(student_courses)
-    items_per_page = total_courses if total_courses > 0 else 1 # Avoid division by zero
-    total_pages = 1
+            course.id,
+            course.name,
+            course.dept,
+            course.number,
+            course.session,
+            course.units,
+            f"{course.get_students_with_grades().total}/{course.maximum}",
+        ])
 
     return render_template(
         "enrollment/course_schedule.html",
-        courses=student_courses, # Pass the course objects
+        courses=courses, # Pass the course objects
         rows=rows,
         titles=titles,
         current_page=current_page,
         total_pages=total_pages,
         total_courses=total_courses,
-        items_per_page=items_per_page
+        items_per_page=per_page
     )
 
 @site_enrollment.route("/Catalog")
@@ -79,13 +62,6 @@ def catalog():
     terms = Term.query.all()
     return(render_template("catalog/catalog.html", terms=terms))
 
-
-# returns a list of courses offered
-#   - includes course name, ID, CRN, etc.
-#   - includes instructorm TAs
-#   - includes Dates/Times of classes, exams
-#       - hovercard w/ calendar element would be neat
-#   - includes level of enrollment, waitlist availability
 @site_enrollment.route("/Catalog/<string:term>", methods = ['POST', 'GET'])
 def catalog_term(term):
     term = Term.query.filter_by(abbreviation=term).first_or_404()
@@ -167,13 +143,6 @@ def enroll():
     # maybe use a carousel; maybe use a dropdown; idk
     terms = Term.query.all()
     return(render_template("enrollment/enroll.html", terms=terms))
-
-
-# likely includes reuised components from
-# `catalog_term` and `classes_term` pages
-# has a course catalog and calendar of selected term
-# checks enrollment availability before allowing db changes
-# maybe include prerequisites/restrictions
     
 @site_enrollment.route("/Enroll/<string:term>", methods = ['POST', 'GET'])
 @login_required
@@ -298,6 +267,3 @@ def enroll_term(term):
         titles=titles,
         courses=courses
     )
-def add_class():
-
-    return None

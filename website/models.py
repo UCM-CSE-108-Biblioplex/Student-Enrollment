@@ -45,7 +45,7 @@ class User(db.Model, UserMixin):
         ).order_by(Course.term, Course.dept, Course.number).all()
         return(assignments)
 
-    def get_courses_role(self, role):
+    def get_courses_role(self, role, page=1, per_page=50):
         courses_with_role = db.session.query(
             Course
         ).join(
@@ -54,7 +54,7 @@ class User(db.Model, UserMixin):
             roles.c.user_id == self.id
         ).filter(
             roles.c.role_id == role.id
-        ).all()
+        ).paginate(page=page, per_page=per_page)
         return(courses_with_role)
 
 class APIKey(db.Model):

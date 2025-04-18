@@ -1,16 +1,12 @@
 from flask import Blueprint, jsonify, g, request, abort, Response, render_template, url_for
-from werkzeug.security import generate_password_hash as gph
 from werkzeug.security import check_password_hash as cph
 from sqlalchemy import select, delete, insert, update
 from flask_login import current_user
-from urllib.parse import unquote
 from functools import wraps
 
 from .models import User, APIKey, CourseCorequisite, Course, Term, Department, CoursePrerequisite, Role, roles
 from .helpers import *
 from . import db
-
-import re
 
 api_main = Blueprint("api_main", __name__)
 
@@ -36,70 +32,12 @@ def requires_authentication(f):
             if(not target_user):
                 abort(Response("User not found", 404))
                 # is the key valid
-            key_checks = [cph(api_key.key, key) for key in target_user.api_keys]
+            key_checks = [cph(api_key, key.key) for key in target_user.api_keys]
             if(not any(key_checks)):
                 abort(Response("Invalid API Key", 403))
             g.user = target_user
         return(f(*args, **kwargs))
     return(decorated_function)
-
-# copy/pasted from site_auth.py; maybe reuse
-def generate_username(first_name, middle_name, last_name):
-    # generate username
-    # Just the user's last name, alphanumeric
-    
-    processed_last_name = username = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())
-
-    # if that's taken, add middle initial (if provided) and last initial
-    results = User.query.filter_by(username=username)
-    if(len(results.all()) > 0):
-        last_initial = re.sub(r"r[^a-zA-Z0-9]", "", last_name.casefold().capitalize())[:1]
-        if(middle_name): # if middle name is provided
-            middle_initial = re.sub(r"r[^a-zA-Z0-9]", "", middle_name.casefold().capitalize())[:1]
-            processed_last_name = processed_last_name[:-2]
-        else: # otherwise just last initial
-            middle_initial = ""
-            processed_last_name = processed_last_name[:-1]
-        username = processed_last_name + middle_initial + last_initial
-    
-    return username
-
-def is_instructor_for_course(user, course_id):
-    instructor_role = Role.query.filter_by(name="Instructor").first()
-    if not instructor_role: return False # Should not happen
-
-    assignment = db.session.execute(
-        select(roles).where(
-            roles.c.user_id == user.id,
-            roles.c.course_id == course_id,
-            roles.c.role_id == instructor_role.id
-        )
-    ).first()
-    return assignment is not None
-
-def generate_instructor_rows(instructor_user, courses):
-    rows = []
-    for course in courses:
-        resign_button = f"""
-        <button class="btn btn-danger btn-sm"
-                hx-delete="{url_for('api_main.remove_user_role', user_id=instructor_user.id, course_id=course.id)}"
-                hx-target="#courses-content"
-                hx-swap="innerHTML"
-                hx-headers='{{"Accept": "text/html"}}'
-                hx-confirm="Are you sure you want to resign from {course.dept} {course.number}?">
-            Resign
-        </button>
-        """
-        rows.append([
-            course.id,
-            course.name,
-            course.dept,
-            course.number,
-            course.session,
-            course.units,
-            resign_button # Add the button HTML
-        ])
-    return rows
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
@@ -334,10 +272,8 @@ def remove_user_role(user_id, course_id):
             if g.user.id == user_id and not g.user.is_admin:
                 instructor_role = Role.query.filter_by(name="Instructor").first()
                 courses = target_user.get_courses_role(instructor_role)
-                rows = generate_instructor_rows(target_user, courses)
-                titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Actions"]
                 # Render the full instructor content macro/template directly
-                return render_template("macros/instructor/courses_content.html", courses=courses, rows=rows, titles=titles, current_page=1, total_pages=1, total_courses=len(courses), items_per_page=len(courses))
+                return render_instructor_courses(target_user, 1, 50)
             else: # Admin removal
                 current_assignments = target_user.get_role_assignments()
                 all_courses = Course.query.order_by(Course.term, Course.dept, Course.number).all()
@@ -386,275 +322,6 @@ def remove_user_role(user_id, course_id):
 @api_main.route("/courses", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
 def courses():
-    def get_courses(request):
-        try:
-            page = request.args.get("page", 1)
-            page = int(page)
-        except:
-            page = 1
-        try:
-            per_page = request.args.get("per_page", 50)
-            per_page = int(per_page)
-        except:
-            per_page = 50
-
-        # what kind of search are we doing?
-        query = request.args.get("query", "name")
-        if(query not in ["name", "id", "dept"]):
-            query = "name"
-        # specific term?
-        term = request.args.get("term", None)
-        
-        courses_ = Course.query
-        if(term):
-            courses_ = courses_.filter_by(term=term)
-
-        # fuzzy search by name
-        if(query == "name"):
-            course_name = request.args.get("name", "")
-            if(course_name):
-                courses_ = courses_.filter(Course.name.like(f"%{course_name}%"))
-        # search by ID
-        elif(query == "id"):
-            course_id = request.args.get("id", None)
-            try:
-                course_id = int(course_id)
-            except:
-                abort(Response("Invalid course number.", 400))
-            if(not course_id):
-                abort(Response("ID is required.", 400))
-            courses_ = courses_.filter_by(id=course_id)
-        # search by course department and number
-        else:
-            course_dept = request.args.get("dept", None)
-            course_num = request.args.get("num", None)
-            min_number = request.args.get("min", None)
-            max_number = request.args.get("max", None)
-            if(course_dept):
-                courses_ = courses_.filter_by(course_dept=course_dept)
-            if(course_num is not None):
-                courses_ = courses_.filter_by(number=course_num)
-            if(min_number):
-                courses_ = courses_.filter(Course.number >= min_number)
-            if(max_number):
-                courses_ = courses_.filter(Course.number <= max_number)
-            
-        # paginate
-        pagination = courses_.paginate(page=page, per_page=per_page)
-        courses_ = pagination.items
-        total_pages = pagination.pages
-        total_courses = pagination.total
-
-        # return
-        return(courses_, page, total_pages, total_courses, per_page)
-
-    def create_course(request):
-        content_type = request.headers.get("Content-Type")
-        if(content_type == "application/x-www-form-urlencoded"):
-            data = request.form
-        else:
-            data = request.get_json()
-        if(data is None):
-            abort(Response("No request body.", 400))
-
-        course_term = data.get("term", "")
-        if(not course_term):
-            abort(Response("Course term is required.", 400))
-        course_name = data.get("name", "")
-        if(not course_name):
-            abort(Response("Course name is required.", 400))
-        course_dept = data.get("dept", "")
-        if(not course_dept):
-            abort(Response("Course department is required.", 400))
-        number = data.get("number", "")
-        if(not number):
-            abort(Response("Course number is required.", 400))
-        session = data.get("session", "")
-        if(not session):
-            abort(Response("Course session is required.", 400))
-        units = data.get("units", 0)
-        try:
-            units = int(units)
-        except:
-            abort(Response("Invalid course units.", 400))
-        maximum = data.get("max", None)
-        if(not maximum):
-            abort(Response("Maximum students is required.", 400))
-        try:
-            maximum = int(maximum)
-        except:
-            abort(Response("Invalid course maximum.", 400))
-        
-        new_course = Course(
-            term=course_term,
-            name=course_name,
-            dept=course_dept,
-            number=number,
-            session=session,
-            units=units,
-            maximum=maximum
-        )
-        return(new_course)
-
-    def edit_course(request):
-        content_type = request.headers.get("Content-Type")
-        if(content_type == "application/x-www-form-urlencoded"):
-            data = request.form
-        else:
-            data = request.get_json()
-        
-        if(not data):
-            abort(Response("No request body.", 400))
-        
-        course_id = data.get("course_id", None)
-        if(not course_id):
-            abort(Response("Course ID is required.", 400))
-        target_course = Course.query.get(course_id)
-        if(not target_course):
-            abort(Response("Course not found.", 404))
-        
-        term = data.get("term", None)
-        if(term):
-            target_course.term = term[:7]
-        name = data.get("name", None)
-        if(name):
-            target_course.name = name[:255]
-        dept = data.get("dept", None)
-        if(dept):
-            target_course.dept = dept[:7]
-        number = data.get("number", None)
-        if(number):
-            target_course.number = number[:7]
-        session = data.get("session", None)
-        if(session):
-            target_course.session = session[:7]
-        units = data.get("units", None)
-        if(units):
-            try:
-                target_course.units = int(units)
-            except:
-                abort(Response("Invalid course units.", 400))
-        
-        user_ids = data.get("user_ids", [])
-        if(type(user_ids) != list and user_ids is not None):
-            abort(Response("Invalid course user_ids", 400))
-        if(user_ids):
-            for user in target_course.users:
-                if(user.id not in user_ids):
-                    target_course.users.remove(user)
-            users = [User.query.get(user_id) for user_id in user_ids]
-            for user in users:
-                if(user not in target_course.users and user is not None):
-                    target_course.users.append(user)
-        
-        # string of form 'DEPT-NUM'
-        corequisites = data.get("corequisites", [])
-        if(type(corequisites) != list and corequisites is not None):
-            abort(Response("Invalid course corequisites", 400))
-        if(corequisites):
-            try:
-                # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
-                corequisites = [{"dept": split[0], "number": split[1]} for split in [coreq.split("-") for coreq in corequisites]]
-            except:
-                abort(Response())
-            course_corequisites = [coreq.to_dict() for coreq in target_course.corequisites]
-            for corequisite in corequisites:
-                if(type(corequisite) != dict):
-                    abort(Response("Invalid course corequisites", 400))
-                if(corequisite in course_corequisites):
-                    continue
-                new_corequisite = CourseCorequisite(
-                    course=target_course,
-                    dept=corequisite["dept"],
-                    number=corequisite["number"]
-                )
-                db.session.add(new_corequisite)
-            for corequisite in target_course.corequisites:
-                if(corequisite.to_dict() not in corequisites):
-                    target_course.corequisites.remove(corequisite)
-
-        prerequisites = data.get("prerequisites", [])
-        if(type(prerequisites) != list and prerequisites is not None):
-            abort(Response("Invalid course prerequisites", 400))
-        if(prerequisites):
-            try:
-                # Luke try not to write utterly unreadable list comprehensions challenge (impossible):
-                prerequisites = [{"dept": split[0], "number": split[1]} for split in [prereq.split("-") for prereq in prerequisites]]
-            except:
-                abort(Response())
-            course_prerequisites = [prereq.to_dict() for prereq in target_course.prerequisites]
-            for prerequisite in prerequisites:
-                if(type(prerequisite) != dict):
-                    abort(Response("Invalid course prerequisites", 400))
-                if(prerequisite in course_prerequisites):
-                    continue
-                new_prerequisite = CoursePrerequisite(
-                    course=target_course,
-                    dept=prerequisite["dept"],
-                    number=prerequisite["number"]
-                )
-                db.session.add(new_prerequisite)
-            for prerequisite in target_course.prerequisites:
-                if(prerequisite.to_dict() not in prerequisites):
-                    target_course.prerequisites.remove(prerequisite)
-        
-        return(target_course)
-        
-    def delete_course(request):
-        content_type = request.headers.get("Content-Type")
-        if("application/x-www-form-urlencoded" in content_type):
-            data = request.form
-        else:
-            data = request.get_json()
-        if(data is None):
-            abort(Response("No request JSON.", 400))
-        
-        course_id = data.get("course_id", None)
-        if(not course_id):
-            abort(Response("Course ID is required.", 400))
-
-        target_course = Course.query.get(course_id)
-        if(not target_course):
-            abort(Response("User not found", 404))
-        
-        return(target_course)
-    
-    def render_courses(courses_, current_page, total_pages, total_courses, per_page):
-        titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Actions"]
-        rows = []
-
-        for course in courses_:
-            actions = render_template(
-                "macros/admin/actions.html",
-                model=course,
-                endpoint=url_for("api_main.courses"),
-                model_type="course"
-            )
-            rows.append([
-                course.id,
-                course.term,
-                course.name,
-                course.dept,
-                course.number,
-                course.session,
-                course.units,
-                actions
-            ])
-        depts = [d for d in Department.query.all()]
-        terms = [t for t in Term.query.all()]
-        return(render_template(
-            "macros/admin/courses_content.html",
-            courses=courses_,
-            rows=rows,
-            titles=titles,
-            current_page=current_page,
-            total_pages=total_pages,
-            total_courses=total_courses,
-            items_per_page=50,
-            depts=depts,
-            terms=terms
-        ))
-
     if(request.method == "GET"):
         courses_, page, total_pages, total_users, per_page = get_courses(request)
 
