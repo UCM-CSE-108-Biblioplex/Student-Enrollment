@@ -420,7 +420,7 @@ def add_user_role(user_id):
     # only admins can assign non-student roles
     if(role.name != "Student" and not g.user.is_admin):
         abort(Response("Insufficient permissions.", 403))
-    if(role.name == "Student" and course.get_students_with_grades.total() >= course.maximum):
+    if(role.name == "Student" and course.get_students_with_grades().total >= course.maximum):
         abort(Response("Course full.", 403))
     
     existing_assignment = db.session.execute(select(roles).where(roles.c.user_id == user_id, roles.c.course_id == course_id)).first()
@@ -665,6 +665,13 @@ def courses():
             units = int(units)
         except:
             abort(Response("Invalid course units.", 400))
+        maximum = data.get("max", None)
+        if(not maximum):
+            abort(Response("Maximum students is required.", 400))
+        try:
+            maximum = int(maximum)
+        except:
+            abort(Response("Invalid course maximum.", 400))
         
         new_course = Course(
             term=course_term,
@@ -672,7 +679,8 @@ def courses():
             dept=course_dept,
             number=number,
             session=session,
-            units=units
+            units=units,
+            maximum=maximum
         )
         return(new_course)
 

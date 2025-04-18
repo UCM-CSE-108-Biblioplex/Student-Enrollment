@@ -42,7 +42,7 @@ def classes_term(term):
 
     student_courses = current_user.get_courses_role(student_role)
 
-    titles = ["ID", "Name", "Department", "Number", "Session", "Units"]
+    titles = ["ID", "Name", "Department", "Number", "Session", "Units", "Students"]
 
     rows = []
 
@@ -53,7 +53,8 @@ def classes_term(term):
                     course.dept,
                     course.number,
                     course.session,
-                    course.units
+                    course.units,
+                    f"{course.get_students_with_grades().total}/{course.maximum}",
                 ])
 
     # Simplified pagination data since we're showing all courses for the instructor
@@ -130,7 +131,7 @@ def catalog_term(term):
         courses = pagination.items
         total_courses = pagination.total
 
-    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units"]
+    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Students"]
     rows = []
     for course in courses:
         modal_html =  f"""<a @click="document.querySelector('#course-{course.id}-modal').click()">{course.name}</a>"""
@@ -141,7 +142,8 @@ def catalog_term(term):
             course.dept,
             course.number,
             course.session,
-            course.units
+            course.units,
+            f"{course.get_students_with_grades().total}/{course.maximum}",
         ])
 
     return render_template(
@@ -219,12 +221,14 @@ def enroll_term(term):
         courses = pagination.items
         total_courses = pagination.total
 
-    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Add"]
+    titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Students", "Add"]
     rows = []
     student_role_id = Role.query.filter_by(name="Student").first().id
     for course in courses:
         existing_assignment = db.session.query(roles).filter(roles.c.user_id == current_user.id, roles.c.course_id == course.id).first()
-        if(existing_assignment):
+        if(course.get_students_with_grades().total >= course.maximum):
+            button = "<span>(Course Full)</span>"
+        elif(existing_assignment):
             button = f'''
                 <form id="enroll-button">
                 <input
@@ -277,6 +281,7 @@ def enroll_term(term):
             course.number,
             course.session,
             course.units,
+            f"{course.get_students_with_grades().total}/{course.maximum}",
             button
     ])
 

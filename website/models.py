@@ -74,7 +74,7 @@ class Course(db.Model):
     number = db.Column(db.String(7), nullable=False)
     session = db.Column(db.String(7), nullable=False)
     units = db.Column(db.Integer, nullable=False)
-    maxmimum = db.Column(db.Integer)
+    maximum = db.Column(db.Integer)
 
     users = db.relationship(
         "User", secondary="roles", back_populates="courses"
