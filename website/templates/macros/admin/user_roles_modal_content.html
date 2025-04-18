@@ -4,12 +4,9 @@
 {% from "macros/table.html" import table %}
 {% from "macros/indicator.html" import htmx_indicator %}
 
-{# Display User Info #}
-<h4 class="mb-4">User: {{ user.first_name }} {{ user.last_name }} ({{ user.username }})</h4>
-
 {# Section for Current Assignments #}
-<div class="mb-6">
-    <h5 class="mb-3 font-semibold">Current Role Assignments</h5>
+<div class="mb-8">
+    <h4 class="mb-3 font-semibold">Current Role Assignments</h4>
     {% if current_assignments %}
         <div class="table-container" style="max-height: 250px; overflow-y: auto;">
             <table class="table table-compact">
@@ -45,23 +42,27 @@
             </table>
         </div>
     {% else %}
-        <p class="text-secondary">No roles assigned yet.</p>
+        <p class="text-secondary">(No roles assigned yet.)</p>
     {% endif %}
 </div>
 
 {# Section to Add New Assignment #}
 <div>
-    <h5 class="mb-3 font-semibold">Add New Role Assignment</h5>
+    <h4 class="mb-3 font-semibold">Add New Role Assignment</h4>
     <form id="add-role-form-{{ user.id }}"
           hx-post="{{ url_for('api_main.add_user_role', user_id=user.id) }}"
           hx-target="#{{ modal_content_id }}"
           hx-swap="innerHTML"
           hx-headers='{"Accept": "text/html"}'>
 
-        <div class="grid grid-cols-3 gap-4 items-end">
+        <div class="grid grid-cols-3 gap-4 items-start">
+            <label for="course_id_{{ user.id }}" class="form-label">Course:</label>
+            <label for="role_id_{{ user.id }}" class="form-label">Role:</label>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 items-start">
             {# Course Selection #}
             <div class="form-group">
-                <label for="course_id_{{ user.id }}" class="form-label">Course:</label>
                 <select name="course_id" id="course_id_{{ user.id }}" class="form-select" required>
                     <option value="" disabled selected>Select a Course</option>
                     {% for course in all_courses %}
@@ -74,7 +75,6 @@
 
             {# Role Selection #}
             <div class="form-group">
-                <label for="role_id_{{ user.id }}" class="form-label">Role:</label>
                 <select name="role_id" id="role_id_{{ user.id }}" class="form-select" required>
                     <option value="" disabled selected>Select a Role</option>
                     {% for role in assignable_roles %}
@@ -84,8 +84,8 @@
             </div>
 
             {# Add Button #}
-            <input type="hidden" name="from" value="site_admin.user_roles">
             <div class="form-group">
+                <input type="hidden" name="from" value="site_admin.user_roles">
                  <button type="submit" class="btn btn-primary w-full">
                     {{ htmx_indicator(type="spinner", size="sm") }}
                     Add/Update Role
