@@ -63,7 +63,7 @@ class APIKey(db.Model):
     userid = db.Column(db.Integer, db.ForeignKey("users.id"))
     is_admin = db.Column(db.Boolean, default=False)
     key = db.Column(db.String(255), nullable=False)
-    expiry = db.Column(db.Integer, nullable=False)
+    expiry = db.Column(db.DateTime, nullable=False)
 
 class Course(db.Model):
     __tablename__ = "courses"

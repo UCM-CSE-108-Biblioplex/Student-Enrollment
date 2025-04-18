@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, g, request, abort, Response, render_template, url_for
 from werkzeug.security import check_password_hash as cph
 from sqlalchemy import select, delete, insert, update
-from flask_login import current_user
+from datetime import datetime, timedelta
 from functools import wraps
 
 from .models import User, APIKey, CourseCorequisite, Course, Term, Department, CoursePrerequisite, Role, roles
 from .helpers import *
 from . import db
+
+import secrets
 
 api_main = Blueprint("api_main", __name__)
 
@@ -38,6 +40,22 @@ def requires_authentication(f):
         g.user = target_user
         return(f(*args, **kwargs))
     return(decorated_function)
+
+@api_main.route("/api-key", methods=["GET"])
+@requires_authentication
+def api_keys():
+    api_key = secrets.token_urlsafe(32)
+    expiry = datetime.utcnow() + timedelta(days=60)
+    new_key = APIKey(
+        user=g.user,
+        is_admin=g.user.is_admin,
+        key=api_key,
+        expiry=expiry
+    )
+    return(render_template(
+        "keys_content.html",
+        text_to_copy = api_key
+    ))
 
 @api_main.route("/users", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
@@ -827,170 +845,6 @@ def terms():
 @api_main.route("/departments", methods=["GET", "PUT", "POST", "DELETE"])
 @requires_authentication
 def departments():
-    def get_departments(request):
-        try:
-            page = request.values.get("page", 1, type=int)
-        except ValueError:
-            page = 1
-        try:
-            per_page = request.values.get("per_page", 50, type=int)
-        except ValueError:
-            per_page = 50
-        
-        search_term = request.values.get("search", None)
-        
-        query = Department.query
-
-        if(search_term):
-            search_term_like = f"%{search_term}%"
-            query = query.filter(
-                db.or_(
-                    Department.name.like(search_term_like),
-                    Department.abbreviation.like(search_term_like)
-                )
-            ).order_by(Department.name)
-
-        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-        
-        departments_ = pagination.items
-        total_pages = pagination.pages
-        total_departments = pagination.total
-        
-        # Return the correct page number requested, handles potential out-of-bounds from error_out=False
-        current_page = page if page <= total_pages else total_pages 
-        if(current_page < 1): current_page = 1 # Ensure page is at least 1
-
-        return(departments_, current_page, total_pages, total_departments, per_page)
-
-    def create_department(request):
-        content_type = request.headers.get("Content-Type")
-        if("application/x-www-form-urlencoded" in content_type):
-            data = request.form
-        else:
-            data = request.get_json()
-        if(data is None):
-            abort(Response("No request body.", 400))
-        
-        name = data.get("name", "").strip()
-        if(not name):
-            abort(Response("Department name is required.", 400))
-        abbreviation = data.get("abbreviation", "").strip().upper()
-        if(not abbreviation):
-            abort(Response("Department abbreviation is required.", 400))
-        if(len(abbreviation) > 7):
-             abort(Response("Abbreviation cannot be longer than 7 characters.", 400))
-
-        # Check if abbreviation already exists
-        existing_dept = Department.query.filter_by(abbreviation=abbreviation).first()
-        if(existing_dept):
-            abort(Response(f"Abbreviation '{abbreviation}' is already in use.", 409)) # 409 Conflict
-
-        new_dept = Department(
-            name=name, 
-            abbreviation=abbreviation
-        )
-        return(new_dept)
-
-    def edit_department(request):
-        content_type = request.headers.get("Content-Type")
-        if("application/x-www-form-urlencoded" in content_type):
-            data = request.form
-        else:
-            data = request.get_json()
-        if(not data):
-            abort(Response("No request body.", 400))
-        
-        department_id = data.get("department_id")
-        if(not department_id):
-            abort(Response("Department ID is required.", 400))
-        try:
-            department_id = int(department_id)
-        except ValueError:
-             abort(Response("Invalid Department ID.", 400))
-
-        target_dept = Department.query.get(department_id)
-        if(not target_dept):
-            abort(Response("Department not found.", 404))
-        
-        name = data.get("name", "").strip()
-        if(name):
-            target_dept.name = name
-        else:
-             abort(Response("Department name cannot be empty.", 400)) # Or skip update if desired
-
-        abbreviation = data.get("abbreviation", "").strip().upper()
-        if(abbreviation):
-            if len(abbreviation) > 7:
-                abort(Response("Abbreviation cannot be longer than 7 characters.", 400))
-            # Check if new abbreviation conflicts with another department
-            existing_dept = Department.query.filter(
-                Department.abbreviation == abbreviation,
-                Department.id != department_id # Exclude self
-            ).first()
-            if(existing_dept):
-                 abort(Response(f"Abbreviation '{abbreviation}' is already in use by another department.", 409))
-            target_dept.abbreviation = abbreviation
-        else:
-             abort(Response("Department abbreviation cannot be empty.", 400)) # Or skip update
-
-        return target_dept
-
-    def delete_department(request):
-        content_type = request.headers.get("Content-Type")
-        # Handle potential differences in content type for DELETE form submission
-        if("application/x-www-form-urlencoded" in content_type):
-             data = request.form
-        else:
-            data = request.get_json(silent=True)
-
-        if(data is None):
-            abort(Response("No request body.", 400))
-        
-        department_id = data.get("department_id")
-
-        if(not department_id):
-            abort(Response("Department ID is required.", 400))
-        try:
-            department_id = int(department_id)
-        except ValueError:
-             abort(Response("Invalid Department ID.", 400))
-
-        target_dept = Department.query.get(department_id)
-        if not target_dept:
-            abort(Response("Department not found.", 404))
-            
-        return target_dept
-    
-    def render_departments(departments_, current_page, total_pages, total_departments, per_page):
-        rows = []
-        for department in departments_:
-            # **Corrected actions macro call**
-            actions = render_template(
-                "macros/admin/actions.html",
-                model=department,
-                model_type="department", # Use 'department' as the type
-                endpoint=url_for("api_main.departments") 
-            )
-            rows.append([
-                department.id,
-                department.name,
-                department.abbreviation,
-                actions  # Add the generated actions HTML
-            ])
-
-        titles = ["ID", "Name", "Abbreviation", "Actions"]
-        return(render_template(
-            "macros/admin/departments_content.html", 
-            departments=departments_,
-            rows=rows,
-            titles=titles,
-            current_page=current_page,
-            total_pages=total_pages,
-            total_departments=total_departments,
-            items_per_page=per_page
-        ))
-
-    # --- Route Logic ---
     accept_header = request.headers.get('Accept', '')
     is_htmx_request = 'text/html' in accept_header
 

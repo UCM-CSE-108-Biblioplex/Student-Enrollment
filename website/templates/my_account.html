@@ -1,0 +1,8 @@
+{% extends "master.html" %}
+
+{% block body %}
+<div class="container mt-8">
+    <h1 class="mb-4">API Keys</h1>
+    <button class="btn btn-primary" hx-get="{{ url_for('api_main.api_keys') }}" hx-swap="outerHTML">Generate API Key</button>
+</div>
+{% endblock %}

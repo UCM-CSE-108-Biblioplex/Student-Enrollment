@@ -483,6 +483,134 @@ def get_departments(request):
 
     return(departments_, current_page, total_pages, total_departments, per_page)
 
+def create_department(request):
+    content_type = request.headers.get("Content-Type")
+    if("application/x-www-form-urlencoded" in content_type):
+        data = request.form
+    else:
+        data = request.get_json()
+    if(data is None):
+        abort(Response("No request body.", 400))
+    
+    name = data.get("name", "").strip()
+    if(not name):
+        abort(Response("Department name is required.", 400))
+    abbreviation = data.get("abbreviation", "").strip().upper()
+    if(not abbreviation):
+        abort(Response("Department abbreviation is required.", 400))
+    if(len(abbreviation) > 7):
+            abort(Response("Abbreviation cannot be longer than 7 characters.", 400))
+
+    # Check if abbreviation already exists
+    existing_dept = Department.query.filter_by(abbreviation=abbreviation).first()
+    if(existing_dept):
+        abort(Response(f"Abbreviation '{abbreviation}' is already in use.", 409)) # 409 Conflict
+
+    new_dept = Department(
+        name=name, 
+        abbreviation=abbreviation
+    )
+    return(new_dept)
+
+def edit_department(request):
+    content_type = request.headers.get("Content-Type")
+    if("application/x-www-form-urlencoded" in content_type):
+        data = request.form
+    else:
+        data = request.get_json()
+    if(not data):
+        abort(Response("No request body.", 400))
+    
+    department_id = data.get("department_id")
+    if(not department_id):
+        abort(Response("Department ID is required.", 400))
+    try:
+        department_id = int(department_id)
+    except ValueError:
+            abort(Response("Invalid Department ID.", 400))
+
+    target_dept = Department.query.get(department_id)
+    if(not target_dept):
+        abort(Response("Department not found.", 404))
+    
+    name = data.get("name", "").strip()
+    if(name):
+        target_dept.name = name
+    else:
+            abort(Response("Department name cannot be empty.", 400)) # Or skip update if desired
+
+    abbreviation = data.get("abbreviation", "").strip().upper()
+    if(abbreviation):
+        if len(abbreviation) > 7:
+            abort(Response("Abbreviation cannot be longer than 7 characters.", 400))
+        # Check if new abbreviation conflicts with another department
+        existing_dept = Department.query.filter(
+            Department.abbreviation == abbreviation,
+            Department.id != department_id # Exclude self
+        ).first()
+        if(existing_dept):
+                abort(Response(f"Abbreviation '{abbreviation}' is already in use by another department.", 409))
+        target_dept.abbreviation = abbreviation
+    else:
+            abort(Response("Department abbreviation cannot be empty.", 400)) # Or skip update
+
+    return target_dept
+
+def delete_department(request):
+    content_type = request.headers.get("Content-Type")
+    # Handle potential differences in content type for DELETE form submission
+    if("application/x-www-form-urlencoded" in content_type):
+            data = request.form
+    else:
+        data = request.get_json(silent=True)
+
+    if(data is None):
+        abort(Response("No request body.", 400))
+    
+    department_id = data.get("department_id")
+
+    if(not department_id):
+        abort(Response("Department ID is required.", 400))
+    try:
+        department_id = int(department_id)
+    except ValueError:
+            abort(Response("Invalid Department ID.", 400))
+
+    target_dept = Department.query.get(department_id)
+    if not target_dept:
+        abort(Response("Department not found.", 404))
+        
+    return target_dept
+
+def render_departments(departments_, current_page, total_pages, total_departments, per_page):
+    rows = []
+    for department in departments_:
+        # **Corrected actions macro call**
+        actions = render_template(
+            "macros/admin/actions.html",
+            model=department,
+            model_type="department", # Use 'department' as the type
+            endpoint=url_for("api_main.departments") 
+        )
+        rows.append([
+            department.id,
+            department.name,
+            department.abbreviation,
+            actions  # Add the generated actions HTML
+        ])
+
+    titles = ["ID", "Name", "Abbreviation", "Actions"]
+    return(render_template(
+        "macros/admin/departments_content.html", 
+        departments=departments_,
+        rows=rows,
+        titles=titles,
+        current_page=current_page,
+        total_pages=total_pages,
+        total_departments=total_departments,
+        items_per_page=per_page
+    ))
+
 def render_courses(courses, current_page, total_pages, total_courses, per_page):
     titles = ["ID", "Term", "Name", "Department", "Number", "Session", "Units", "Students", "Actions"]
     rows = []

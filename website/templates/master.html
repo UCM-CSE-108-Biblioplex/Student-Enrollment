@@ -68,6 +68,7 @@
 	<div class="topnav-dropdown">
 		<button class="topnav-dropbtn">My Account</button>
 		<div class="dropdown-content" style = "min-width: 140px;  max-width: 190px;">
+			<a class="topnav-link" href="{{ url_for('site_auth.api_keys') }}">API Keys</a>
 			<a class="topnav-link" style = "color: #FF474C"  href="{{ url_for('site_auth.logout') }}"><span>Log Out</span></a>
 		</div>
 	</div>

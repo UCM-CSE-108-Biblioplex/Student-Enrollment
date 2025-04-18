@@ -171,8 +171,8 @@ def logout():
     flash("Logged out.", "success")
     return(redirect(url_for("site_main.home")))
 
-@site_auth.route("/My-Account")
+@site_auth.route("/API-Keys")
 @login_required
-def my_account():
+def api_keys():
     # may not be necessary
-    return 404
+    return(render_template("my_account.html"))
