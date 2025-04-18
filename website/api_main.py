@@ -884,8 +884,8 @@ def catalog():
         courses = courses.filter_by(term=term)
     department = request.form.get("subject", None) or request.args.get("subject", None)
     if(department):
-        courses = courses.filter_by(department=department)
-    course_number = request.args.get("number", None) or request.args.get("number", None)
+        courses = courses.filter_by(dept=department)
+    course_number = request.form.get("number", None) or request.args.get("number", None)
     if(course_number):
         courses = courses.filter_by(number=course_number)
     page = request.args.get("page", 1) or request.form.get("page", 1)
